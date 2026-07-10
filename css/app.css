@@ -1427,7 +1427,7 @@ body{
 .adminShell .adminIdentity small{display:block;margin-top:2px;color:#738196}
 .adminShell .adminHead{align-items:end}
 .adminShell .adminTools .toolBtn{white-space:nowrap}
-.adminShell .metric{border-top:3px solid #5c83bf}
+.adminShell .metric{border-top:1px solid var(--align-line)}
 .adminShell .metric b{font-size:34px}
 .adminShell .metric span{display:block;margin-top:6px}
 .adminShell .dataTable th{position:sticky;top:0;z-index:1}
@@ -1701,6 +1701,289 @@ body{
   .adminTools{margin-top:12px}
   .adminShell .tableActions{display:grid;grid-template-columns:1fr 1fr}
   .adminShell .tableActions>.btn,.moreMenu,.moreMenu>summary{width:100%}
+}
+
+/* === v1.26 Dashboard visual alignment === */
+.adminShell .side.topNav{
+  min-height:94px;
+  padding:12px 36px;
+  gap:28px;
+}
+.adminShell .topNav .ab{
+  padding-right:30px;
+}
+.adminShell .topNav .topBrandLogo{
+  width:270px;
+  max-height:52px;
+}
+.adminShell .topUserArea.adminIdentity{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:12px;
+  width:auto;
+  min-width:0;
+  min-height:52px;
+  margin-left:auto;
+  padding:0 0 0 26px;
+  border-left:1px solid #dce5ed;
+  border-right:0;
+  text-align:left;
+  white-space:nowrap;
+}
+.adminShell .topUserArea .topUserIcon{
+  display:grid;
+  place-items:center;
+  flex:0 0 26px;
+  width:26px;
+  height:26px;
+  color:#5e718a;
+  font-size:0;
+}
+.adminShell .topUserArea .topUserIcon svg,
+.compactAdminToolbar .iconOnlyButton svg{
+  width:100%;
+  height:100%;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.adminShell .topUserArea .topUserLabels{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  min-width:0;
+  line-height:1.35;
+}
+.adminShell .topUserArea #adminUserName{
+  max-width:180px;
+  overflow:hidden;
+  color:#102b4b;
+  font-size:15px;
+  font-weight:900;
+  text-overflow:ellipsis;
+}
+.adminShell .topUserArea #adminUser{
+  max-width:220px;
+  overflow:hidden;
+  margin:0;
+  color:#738196;
+  font-size:12px;
+  text-overflow:ellipsis;
+}
+.adminShell .topUserArea .topLogout{
+  flex:0 0 auto;
+  margin-left:8px;
+}
+.adminShell .adminPageHead.compactAdminToolbar{
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) minmax(540px,auto);
+  align-items:center;
+  gap:18px;
+}
+.compactAdminToolbar .headActions{
+  justify-content:flex-end;
+  gap:10px;
+}
+.compactAdminToolbar .frontViewButton{
+  min-width:108px;
+  font-weight:900;
+}
+.adminMoreMenu{
+  position:relative;
+  flex:0 0 auto;
+}
+.adminMoreMenu>summary{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:46px;
+  height:46px;
+  list-style:none;
+  cursor:pointer;
+  border:1px solid #cfdbe6;
+  border-radius:10px;
+  background:#fff;
+  color:#24415e;
+  font-weight:900;
+  letter-spacing:1px;
+}
+.adminMoreMenu>summary::-webkit-details-marker{
+  display:none;
+}
+.adminMoreMenu[open]>summary,
+.adminMoreMenu>summary:hover{
+  border-color:#8eb9b5;
+  color:#176b67;
+}
+.adminMoreMenuPanel{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  z-index:45;
+  min-width:230px;
+  padding:7px;
+  border:1px solid #dce5ed;
+  border-radius:10px;
+  background:#fff;
+  box-shadow:0 14px 30px rgba(30,55,85,.14);
+}
+.compactAdminToolbar .adminMoreMenuPanel .btn{
+  display:block;
+  width:100%;
+  min-height:0;
+  padding:10px 12px;
+  border:0;
+  text-align:left;
+}
+.adminShell .dashboardMetrics{
+  gap:16px;
+}
+.adminShell .dashboardMetrics .metric{
+  min-height:156px;
+  padding:28px 24px;
+  border:1px solid #dce5ed;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:none;
+}
+.adminShell .dashboardMetrics .metric span{
+  margin:0;
+  color:#66758a;
+  font-size:15px;
+  font-weight:900;
+}
+.adminShell .dashboardMetrics .metric b{
+  margin-top:12px;
+  color:#071f3a;
+  font-size:42px;
+  line-height:1.15;
+}
+.adminShell .dashboardGrid{
+  grid-template-columns:minmax(0,1.1fr) minmax(320px,.65fr);
+  gap:22px;
+}
+.adminShell .dashboardGrid>.card{
+  padding:32px;
+  border-radius:12px;
+}
+.adminShell .dashboardGrid .sectionHead h2{
+  font-size:25px;
+}
+.currentSurveyCard{
+  padding:24px;
+  border:1px solid #dce5ed;
+  border-radius:12px;
+  background:#fbfdff;
+}
+.currentSurveyCard h3{
+  margin:0 0 8px;
+  color:#102b4b;
+  font-size:22px;
+}
+.currentSurveyCard p{
+  margin:0 0 18px;
+  color:#607086;
+}
+.currentSurveyMeta{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.currentSurveyMeta>span{
+  display:inline-flex;
+  align-items:center;
+  min-height:34px;
+  padding:7px 12px;
+  border-radius:8px;
+  background:#f0f5fb;
+  color:#193653;
+  font-weight:900;
+}
+.quickActions{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.quickActions .btn{
+  min-height:64px;
+  border-radius:8px;
+  font-size:17px;
+}
+@media(max-width:1180px){
+  .adminShell .side.topNav{
+    padding:12px 22px;
+    gap:16px;
+  }
+  .adminShell .topNav .topBrandLogo{
+    width:220px;
+  }
+  .adminShell .adminPageHead.compactAdminToolbar{
+    grid-template-columns:1fr;
+  }
+  .compactAdminToolbar .headActions{
+    justify-content:flex-start;
+  }
+}
+@media(max-width:820px){
+  .adminShell .side.topNav{
+    min-height:0;
+    padding:12px 16px;
+  }
+  .adminShell .topUserArea.adminIdentity{
+    order:2;
+    margin-left:auto;
+    padding-left:12px;
+    border-left:1px solid #dce5ed;
+  }
+  .adminShell .topUserArea #adminUserName,
+  .adminShell .topUserArea #adminUser{
+    max-width:150px;
+  }
+  .adminShell .dashboardGrid{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:560px){
+  .adminShell .topNav .topBrandLogo{
+    width:170px;
+  }
+  .adminShell .topUserArea.adminIdentity{
+    width:100%;
+    margin-left:0;
+    padding:10px 0 0;
+    border-left:0;
+  }
+  .adminShell .topUserArea .topUserIcon{
+    display:none;
+  }
+  .compactAdminToolbar .headActions{
+    display:grid;
+    grid-template-columns:1fr 46px 46px;
+    width:100%;
+  }
+  .compactAdminToolbar #activeFormSelect,
+  .compactAdminToolbar .frontViewButton{
+    grid-column:1/-1;
+    width:100%;
+    max-width:none;
+  }
+  .adminShell .dashboardMetrics{
+    grid-template-columns:1fr 1fr;
+  }
+  .adminShell .dashboardMetrics .metric{
+    min-height:120px;
+    padding:18px;
+  }
+  .adminShell .dashboardMetrics .metric b{
+    font-size:32px;
+  }
+  .quickActions{
+    grid-template-columns:1fr;
+  }
 }
 
 

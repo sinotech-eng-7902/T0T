@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.25</title>
+  <title>公司通用問卷調查系統 v1.26</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=1.24">
+  <link rel="stylesheet" href="css/app.css?v=1.26">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -47,7 +47,7 @@
         </details>
       </div>
       <div class="adminIdentity topUserArea">
-        <span class="topUserIcon" aria-hidden="true">♙</span>
+        <span class="topUserIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.6-4 3.1-6 7-6s6.4 2 7 6"></path></svg></span>
         <div class="topUserLabels"><b id="adminUserName">公司通用問卷調查系統</b><small id="adminUser"></small></div>
         <button class="topLogout" onclick="logout()">登出</button>
       </div>
@@ -55,7 +55,18 @@
     <main class="adminMain main">
       <header class="adminHead adminPageHead compactAdminToolbar">
         <div><h1 id="panelTitle">儀表板</h1><p id="activeFormLabel">尚未選擇問卷</p></div>
-        <div class="adminTools headActions"><select id="activeFormSelect" onchange="selectForm(this.value)"></select><button class="toolBtn iconOnlyButton" onclick="copyFormLink()" title="複製連結">⛓</button><button class="toolBtn frontViewButton" onclick="showFront()">查看前台</button></div>
+        <div class="adminTools headActions">
+          <select id="activeFormSelect" onchange="selectForm(this.value)"></select>
+          <button id="refreshAdminBtn" class="toolBtn iconOnlyButton" onclick="refreshAdminView()" title="重新整理資料" aria-label="重新整理資料"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"></path><path d="M19 11a7.5 7.5 0 1 0 .2 3"></path></svg></button>
+          <details id="adminMoreMenu" class="adminMoreMenu">
+            <summary title="更多操作" aria-label="更多操作">•••</summary>
+            <div class="adminMoreMenuPanel">
+              <button class="btn" onclick="copyFormLink();document.getElementById('adminMoreMenu').open=false">複製問卷前台網址</button>
+              <button class="btn" onclick="copyAdminLink();document.getElementById('adminMoreMenu').open=false">複製本問卷後台網址</button>
+            </div>
+          </details>
+          <button class="toolBtn frontViewButton" onclick="showFront()">查看前台</button>
+        </div>
       </header>
 
       <section id="dashboardPanel" class="panel active">
@@ -115,8 +126,8 @@
     </div>
   </div>
   <div id="pageLoading" class="pageLoading" hidden><div>處理中…</div></div>
-  <script src="js/config.js?v=1.24"></script>
-  <script src="js/app.js?v=1.24"></script>
+  <script src="js/config.js?v=1.26"></script>
+  <script src="js/app.js?v=1.26"></script>
 </body>
 </html>
 
