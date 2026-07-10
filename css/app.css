@@ -904,3 +904,163 @@ body{
   }
 }
 
+/* === v1.19 operation experience alignment === */
+.adminTools{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  flex-wrap:wrap;
+  min-width:0;
+}
+
+.adminTools select{
+  flex:1 1 360px;
+}
+
+.toolBtn{
+  min-height:48px;
+  padding:10px 15px;
+  border:1px solid var(--ui-line);
+  border-radius:10px;
+  background:#fff;
+  color:#173a5f;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.toolBtn:hover{
+  background:#eef5ff;
+  border-color:#cfe1fb;
+  color:#1558a8;
+}
+
+.adminShell .sidebar{
+  padding-right:22px;
+}
+
+.adminShell .nav{
+  min-width:112px;
+}
+
+.adminShell .adminHead{
+  display:grid;
+  grid-template-columns:minmax(260px,.8fr) minmax(420px,1.2fr);
+  align-items:end;
+}
+
+.formBlock{
+  margin:18px 0;
+  padding:20px;
+  border:1px solid var(--ui-line);
+  border-radius:14px;
+  background:#fbfdff;
+}
+
+.formBlock h3{
+  margin:0 0 14px;
+  color:var(--ui-ink);
+  font-size:20px;
+  line-height:1.35;
+}
+
+.formBlock>.identitySettings,
+.formBlock>.driveImageField{
+  margin:0;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+
+.formBlock>.driveImageField{
+  display:grid;
+  gap:8px;
+}
+
+.adminShell .tableActions .btn{
+  min-width:62px;
+  padding-inline:12px;
+}
+
+.adminShell #formsTable .dataTable table{
+  min-width:1120px;
+}
+
+.adminShell #formsTable td:last-child{
+  min-width:330px;
+}
+
+.adminShell #formManagersTable td:last-child,
+.adminShell #resultsTable td:last-child,
+.adminShell #trashTable td:last-child{
+  min-width:150px;
+}
+
+.submitSuccessCard{
+  max-width:620px;
+  margin:46px auto 0;
+}
+
+.submitSuccessCard h2{
+  color:var(--ui-ink);
+  font-size:30px;
+}
+
+.submitSuccessCard p{
+  color:var(--ui-muted);
+}
+
+.frontShell .ghostBtn{
+  background:#fff;
+}
+
+.frontShell .ghostBtn:hover{
+  background:#eef5ff;
+  color:#1558a8;
+}
+
+.resultDetailHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  padding-top:12px;
+  border-top:1px solid var(--ui-line);
+}
+
+.missingPanelHead h3,
+.resultDetailHead h3{
+  color:var(--ui-ink);
+}
+
+.permissionForm .btn.primary{
+  min-width:150px;
+}
+
+@media(max-width:1100px){
+  .adminShell .adminHead{
+    grid-template-columns:1fr;
+  }
+
+  .adminTools{
+    justify-content:flex-start;
+  }
+}
+
+@media(max-width:760px){
+  .adminTools{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    width:100%;
+  }
+
+  .adminTools select{
+    grid-column:1/-1;
+    width:100%;
+  }
+
+  .toolBtn{
+    width:100%;
+  }
+}
+
