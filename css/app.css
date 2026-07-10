@@ -1421,3 +1421,61 @@ body{
   }
 }
 
+/* === v1.23 administrative system full alignment === */
+.adminShell .sidebar>img{width:300px;max-width:28vw}
+.adminShell .adminIdentity b{font-size:15px;letter-spacing:0}
+.adminShell .adminIdentity small{display:block;margin-top:2px;color:#738196}
+.adminShell .adminHead{align-items:end}
+.adminShell .adminTools .toolBtn{white-space:nowrap}
+.adminShell .metric{border-top:3px solid #5c83bf}
+.adminShell .metric b{font-size:34px}
+.adminShell .metric span{display:block;margin-top:6px}
+.adminShell .dataTable th{position:sticky;top:0;z-index:1}
+.adminShell .dataTable td{vertical-align:middle}
+.adminShell .tableActions{gap:10px 12px;flex-wrap:wrap}
+.adminShell .tableActions>.btn,.moreMenu>summary{min-width:76px;min-height:42px;display:inline-flex;align-items:center;justify-content:center}
+.moreMenu{display:inline-block;position:relative}
+.moreMenu>summary{list-style:none;cursor:pointer}
+.moreMenu>summary::-webkit-details-marker{display:none}
+.moreMenu[open]>summary{background:#e8f2ff;color:#1359a8}
+.moreMenu>div{position:absolute;right:0;top:calc(100% + 8px);z-index:80;display:grid;gap:6px;min-width:150px;padding:8px;border:1px solid #dce5ed;border-radius:12px;background:#fff;box-shadow:0 16px 28px rgba(16,43,75,.14)}
+.moreMenu>div .btn{width:100%;min-height:38px;margin:0;justify-content:flex-start}
+.emptyState{display:grid;place-items:center;gap:8px;min-height:120px;padding:24px;text-align:center;color:#68758a}
+.emptyState>span{display:grid;place-items:center;width:42px;height:42px;border-radius:999px;background:#eaf3ff;color:#1459a8;font-weight:900}
+.emptyState>b{color:#102b4b;font-size:18px}
+.emptyState>p{margin:0;line-height:1.7}
+.emptyState .btn{margin-top:4px}
+.toast.success{background:#14532d}
+.toast.error{background:#991b1b}
+.toast.warn{background:#92400e}
+.toast.info{background:#173a5f}
+.departmentChoices{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.departmentChoice{position:relative;display:inline-flex;align-items:center;gap:11px;min-width:128px;min-height:52px;padding:12px 16px 12px 48px}
+.departmentChoice input{position:absolute;opacity:0;pointer-events:none}
+.departmentChoice:before{content:'';position:absolute;left:16px;top:50%;width:22px;height:22px;border:1.7px solid #aeb8c7;border-radius:6px;background:#fff;transform:translateY(-50%)}
+.departmentChoice:has(input:checked):before{content:'✓';display:grid;place-items:center;border-color:#397bc7;background:#397bc7;color:#fff;font-weight:900;line-height:22px}
+.departmentChoice:has(input:focus-visible){outline:3px solid rgba(37,99,235,.22);outline-offset:2px}
+.questionEdit input[type="checkbox"],.questionEdit input[type="radio"],.responseEditCard input[type="checkbox"],.responseEditCard input[type="radio"]{accent-color:#397bc7}
+.currentSurveyMeta{align-items:flex-start}
+.currentSurveyMeta>span{white-space:normal}
+.surveyGroup .emptyCell{padding:0!important}
+.adminShell #formsTable .dataTable table{min-width:1280px}
+.adminShell #formsTable td:nth-child(1){max-width:300px;overflow-wrap:anywhere}
+.adminShell #formsTable td:nth-child(8){min-width:260px}
+.permissionForm select,.permissionForm input{min-height:52px}
+.loadingBox{background:#f7fbff}
+.errorBox{border-color:#f4c7c7;background:#fff7f7;color:#a32929}
+@media(max-width:900px){
+  .adminShell .sidebar>img{width:230px;max-width:100%}
+  .adminShell .adminIdentity{border-left:0;border-right:0}
+  .departmentChoices{display:grid;grid-template-columns:1fr}
+  .departmentChoice{width:100%}
+  .moreMenu>div{position:static;margin-top:8px;box-shadow:none}
+}
+@media(max-width:640px){
+  .adminShell .adminHead{display:block}
+  .adminTools{margin-top:12px}
+  .adminShell .tableActions{display:grid;grid-template-columns:1fr 1fr}
+  .adminShell .tableActions>.btn,.moreMenu,.moreMenu>summary{width:100%}
+}
+

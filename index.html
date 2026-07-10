@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.22</title>
+  <title>公司通用問卷調查系統 v1.23</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=1.22">
+  <link rel="stylesheet" href="css/app.css?v=1.23">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -24,7 +24,7 @@
   <div id="admin" class="adminShell">
     <aside class="sidebar">
       <img src="assets/company-logo.png" alt="環興科技股份有限公司">
-      <div class="adminIdentity"><b>公司通用問卷</b><small id="adminUser"></small></div>
+      <div class="adminIdentity"><b>公司通用問卷調查系統</b><small id="adminUser"></small></div>
       <button class="nav active" onclick="showPanel('dashboardPanel',this)">儀表板</button>
       <details class="navGroup" open>
         <summary>問卷作業 <span class="navChevron"></span></summary>
@@ -32,6 +32,8 @@
           <button class="nav" onclick="showPanel('formsPanel',this)">問卷管理</button>
           <button class="nav" onclick="showPanel('editorPanel',this);startNewForm()">建立或編輯問卷</button>
           <button class="nav" onclick="showPanel('resultsPanel',this)">填寫結果</button>
+          <button class="nav" onclick="openMissingList()">未填寫名單</button>
+          <button id="permissionsNav" class="nav" onclick="showPanel('permissionsPanel',this);loadFormManagers()">權限管理</button>
           <button class="nav navExport" onclick="exportResults()">Excel 匯出</button>
         </div>
       </details>
@@ -39,12 +41,13 @@
         <summary>系統管理 <span class="navChevron"></span></summary>
         <div class="navMenu">
           <button class="nav" onclick="showPanel('membersPanel',this)">人員管理</button>
+          <button class="nav" onclick="showPanel('trashPanel',this)">垃圾桶</button>
         </div>
       </details>
     </aside>
     <main class="adminMain">
       <header class="adminHead">
-        <div><h1 id="panelTitle">問卷管理</h1><p id="activeFormLabel">尚未選擇問卷</p></div>
+        <div><h1 id="panelTitle">儀表板</h1><p id="activeFormLabel">尚未選擇問卷</p></div>
         <div class="adminTools"><select id="activeFormSelect" onchange="selectForm(this.value)"></select><button class="toolBtn" onclick="copyFormLink()">複製連結</button><button class="toolBtn" onclick="showFront()">查看前台</button><button class="toolBtn" onclick="logout()">登出</button></div>
       </header>
 
@@ -79,6 +82,10 @@
         </div>
       </section>
 
+      <section id="trashPanel" class="panel">
+        <div class="card trashCard"><div class="sectionHead"><div><h2>垃圾桶</h2><p>移至垃圾桶的問卷可復原；永久刪除僅限系統管理員操作，且會連動清除回覆、鎖定與分享權限。</p></div></div><div id="trashTable"></div></div>
+      </section>
+
       <section id="resultsPanel" class="panel">
         <div class="card"><div class="sectionHead"><div><h2>填寫結果</h2><p id="resultCaption">請先選擇問卷。</p></div><div class="buttonRow"><button class="btn" onclick="copyFormLink()">複製問卷網址</button><button class="btn success" onclick="exportResults()">Excel 匯出</button></div></div><div id="resultAnalysis"></div><div class="resultDetailHead"><h3>逐筆填寫明細</h3><p>管理員可修正或刪除個別回覆。</p></div><div id="resultsTable"></div></div>
       </section>
@@ -91,7 +98,7 @@
       <form id="responseEditForm" onsubmit="saveEditedResponse(event)"><div id="responseEditBody"></div><div class="buttonRow modalActions"><button id="saveResponseBtn" class="btn primary" type="submit">儲存變更</button><button class="btn" type="button" onclick="closeResponseEditor()">取消</button></div></form>
     </div>
   </div>
-  <script src="js/config.js?v=1.22"></script>
-  <script src="js/app.js?v=1.22"></script>
+  <script src="js/config.js?v=1.23"></script>
+  <script src="js/app.js?v=1.23"></script>
 </body>
 </html>
