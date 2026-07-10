@@ -1,0 +1,8 @@
+/* v1.15 account and self-result view */
+.frontActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.myResponseCard{margin-top:18px}
+.myResponseMeta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;color:#667085}
+.myAnswerList{display:grid;gap:10px}
+.myAnswerItem{padding:13px 14px;border:1px solid #dce7e5;border-radius:12px;background:#fbfdfc}
+.myAnswerItem b{display:block;margin-bottom:5px;color:#17334f}
+.myAnswerItem p{margin:0;white-space:pre-wrap;color:#344054;line-height:1.6}

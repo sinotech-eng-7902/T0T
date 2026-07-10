@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.14</title>
+  <title>公司通用問卷調查系統 v1.15</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/v1.12.css?v=1.12">
   <link rel="stylesheet" href="css/v1.13.css?v=1.13">
   <link rel="stylesheet" href="css/v1.14.css?v=1.14">
+  <link rel="stylesheet" href="css/v1.15.css?v=1.15">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -63,7 +64,7 @@
 
       <section id="membersPanel" class="panel">
         <div class="card"><div class="sectionHead"><div><h2>人員管理</h2><p>與行政部活動調查系統共用同一份人員名單；此處異動會同步反映到兩套系統。</p></div><div class="buttonRow"><button class="btn" onclick="downloadMemberTemplate()">下載標準範本</button><button class="btn" onclick="chooseMemberImport()">匯入 Excel</button><button class="btn success" onclick="exportMembers()">匯出名單</button><button class="btn primary" onclick="startNewMember()">＋ 新增人員</button><input id="memberImportInput" class="hiddenFileInput" type="file" accept=".xlsx,.xls,.csv" onchange="importMembers(this.files[0]);this.value=''" aria-label="匯入人員名單"></div></div>
-          <div id="memberEditor" class="memberEditor"><div class="sectionHead"><div><h3 id="memberEditorHeading">新增人員</h3><p id="memberEditorMode">新增模式</p></div></div><div class="memberFormGrid"><label>部門<select id="memberDepartment"></select></label><label>姓名<input id="memberName"></label><label>員工編號<input id="memberEmployeeNo"></label><label>狀態<select id="memberActive"><option value="true">啟用</option><option value="false">停用</option></select></label></div><div class="buttonRow"><button id="saveMemberBtn" class="btn primary" onclick="saveMember()">新增人員</button><button class="btn" onclick="cancelMemberEdit()">取消</button></div></div>
+          <div id="memberEditor" class="memberEditor"><div class="sectionHead"><div><h3 id="memberEditorHeading">新增人員</h3><p id="memberEditorMode">新增模式</p></div></div><div class="memberFormGrid"><label>部門<select id="memberDepartment"></select></label><label>姓名<input id="memberName"></label><label>員工編號<input id="memberEmployeeNo"></label><label>Google 帳號<input id="memberGoogleEmail" type="email" placeholder="name@gmail.com"></label><label>狀態<select id="memberActive"><option value="true">啟用</option><option value="false">停用</option></select></label></div><div class="buttonRow"><button id="saveMemberBtn" class="btn primary" onclick="saveMember()">新增人員</button><button class="btn" onclick="cancelMemberEdit()">取消</button></div></div>
           <div id="memberImportResult" class="memberImportResult"></div><div class="memberListTools"><input id="memberSearch" placeholder="搜尋部門、姓名或員工編號" oninput="renderMemberPanel()"><span id="memberCountLabel"></span></div><div id="membersTable"></div>
         </div>
       </section>
@@ -80,7 +81,7 @@
       <form id="responseEditForm" onsubmit="saveEditedResponse(event)"><div id="responseEditBody"></div><div class="buttonRow modalActions"><button id="saveResponseBtn" class="btn primary" type="submit">儲存變更</button><button class="btn" type="button" onclick="closeResponseEditor()">取消</button></div></form>
     </div>
   </div>
-  <script src="js/config.js?v=1.14"></script>
-  <script src="js/app.js?v=1.14"></script>
+  <script src="js/config.js?v=1.15"></script>
+  <script src="js/app.js?v=1.15"></script>
 </body>
 </html>
