@@ -1,0 +1,320 @@
+/* v1.16 admin interface alignment */
+:root{
+  --admin-ink:#08284a;
+  --admin-muted:#5d7190;
+  --admin-bg:#f3f7fb;
+  --admin-line:#d8e2ef;
+  --admin-soft:#eef5ff;
+  --admin-blue:#2f67c7;
+  --admin-blue-dark:#265db7;
+}
+
+.adminShell{
+  background:var(--admin-bg);
+  color:var(--admin-ink);
+}
+
+.adminShell .sidebar{
+  position:sticky;
+  inset:auto;
+  top:0;
+  z-index:40;
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+  padding:16px 28px;
+  background:#fff;
+  color:var(--admin-ink);
+  border-bottom:1px solid var(--admin-line);
+  box-shadow:0 8px 22px rgba(15,35,60,.05);
+  overflow:visible;
+}
+
+.adminShell .sidebar>img{
+  width:300px;
+  max-width:30vw;
+  padding:0;
+  background:transparent;
+  border-radius:0;
+}
+
+.adminShell .adminIdentity{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-height:54px;
+  padding:0 20px;
+  border-left:1px solid var(--admin-line);
+  color:var(--admin-ink);
+}
+
+.adminShell .adminIdentity b{
+  font-size:15px;
+  letter-spacing:0;
+}
+
+.adminShell .adminIdentity small{
+  color:var(--admin-muted);
+  line-height:1.4;
+}
+
+.adminShell .nav{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:auto;
+  min-height:48px;
+  margin:0;
+  padding:11px 16px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:#183a60;
+  text-align:center;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.adminShell .nav:hover,
+.adminShell .nav.active{
+  background:var(--admin-soft);
+  color:#0f57ad;
+}
+
+.adminShell .adminMain{
+  margin-left:0;
+  padding:26px 28px 64px;
+}
+
+.adminShell .adminHead{
+  max-width:1780px;
+  margin:0 auto 22px;
+  padding-bottom:18px;
+  border-bottom:1px solid var(--admin-line);
+}
+
+.adminShell .adminHead h1{
+  color:var(--admin-ink);
+  font-size:32px;
+  line-height:1.25;
+}
+
+.adminShell .adminHead p,
+.adminShell .sectionHead p,
+.adminShell .card p{
+  color:var(--admin-muted);
+}
+
+.adminShell .adminHead select{
+  min-width:360px;
+  min-height:48px;
+}
+
+.adminShell .panel{
+  max-width:1780px;
+  margin:0 auto;
+}
+
+.adminShell .card,
+.adminShell .metric{
+  border:1px solid var(--admin-line);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:none;
+}
+
+.adminShell .card{
+  padding:28px;
+}
+
+.adminShell .metric{
+  padding:22px 24px;
+}
+
+.adminShell .metric span{
+  color:var(--admin-muted);
+  font-size:15px;
+}
+
+.adminShell .metric b{
+  color:var(--admin-ink);
+  font-size:30px;
+}
+
+.adminShell .sectionHead{
+  margin-bottom:20px;
+}
+
+.adminShell .sectionHead h2,
+.adminShell .questionHead h3,
+.adminShell .resultDetailHead h3{
+  color:var(--admin-ink);
+  font-size:24px;
+  line-height:1.35;
+}
+
+.adminShell .btn{
+  min-height:46px;
+  padding:10px 16px;
+  border-radius:9px;
+  background:#eef3f9;
+  color:#0d2e50;
+  box-shadow:none;
+}
+
+.adminShell .btn.primary{
+  background:var(--admin-blue);
+  color:#fff;
+}
+
+.adminShell .btn.primary:hover{
+  background:var(--admin-blue-dark);
+}
+
+.adminShell .btn.success{
+  background:#e4f7ec;
+  color:#0f6a3c;
+}
+
+.adminShell .btn.danger{
+  background:#fff;
+  border:1px solid #f2b7b3;
+  color:#c92727;
+}
+
+.adminShell .buttonRow{
+  gap:12px;
+}
+
+.adminShell input,
+.adminShell select,
+.adminShell textarea,
+.adminShell .card input,
+.adminShell .card select,
+.adminShell .card textarea{
+  min-height:46px;
+  border:1px solid #cad7e6;
+  border-radius:10px;
+  background:#fff;
+  color:var(--admin-ink);
+}
+
+.adminShell textarea,
+.adminShell .card textarea{
+  min-height:112px;
+}
+
+.adminShell .tableWrap{
+  border:1px solid var(--admin-line);
+  border-radius:12px;
+}
+
+.adminShell th{
+  background:#f1f5fa;
+  color:#193a5d;
+  font-size:14px;
+  font-weight:800;
+}
+
+.adminShell th,
+.adminShell td{
+  border-bottom:1px solid var(--admin-line);
+  padding:14px 16px;
+}
+
+.adminShell .questionEdit,
+.adminShell .identitySettings,
+.adminShell .driveImageField,
+.adminShell .memberEditor,
+.adminShell .permissionForm,
+.adminShell .trashCard{
+  border:1px solid var(--admin-line);
+  border-radius:12px;
+  background:#fbfdff;
+}
+
+.adminShell .stickyActions{
+  border:1px solid var(--admin-line);
+  background:rgba(255,255,255,.96);
+  box-shadow:0 12px 24px rgba(15,35,60,.08);
+}
+
+@media(max-width:1100px){
+  .adminShell .sidebar{
+    align-items:flex-start;
+  }
+
+  .adminShell .sidebar>img{
+    width:280px;
+    max-width:100%;
+  }
+
+  .adminShell .adminIdentity{
+    flex:1 1 240px;
+  }
+
+  .adminShell .nav{
+    flex:1 1 140px;
+  }
+}
+
+@media(max-width:900px){
+  .adminShell .sidebar{
+    position:static;
+    padding:14px 18px;
+    gap:10px;
+  }
+
+  .adminShell .adminIdentity{
+    order:2;
+    flex:1 1 100%;
+    min-height:0;
+    padding:10px 0 0;
+    border-left:0;
+    border-top:1px solid var(--admin-line);
+  }
+
+  .adminShell .nav{
+    flex:1 1 calc(50% - 10px);
+    min-height:44px;
+    padding:10px 12px;
+  }
+
+  .adminShell .adminMain{
+    padding:18px 14px 48px;
+  }
+
+  .adminShell .adminHead{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .adminShell .adminHead h1{
+    font-size:28px;
+  }
+
+  .adminShell .adminHead select{
+    width:100%;
+    min-width:0;
+  }
+
+  .adminShell .card{
+    padding:20px;
+  }
+}
+
+@media(max-width:600px){
+  .adminShell .sidebar>img{
+    width:260px;
+  }
+
+  .adminShell .nav{
+    flex:1 1 100%;
+  }
+
+  .adminShell .buttonRow .btn{
+    flex:1 1 auto;
+  }
+}
