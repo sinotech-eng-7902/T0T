@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.19</title>
+  <title>公司通用問卷調查系統 v1.22</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=1.19">
+  <link rel="stylesheet" href="css/app.css?v=1.22">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -24,21 +24,41 @@
   <div id="admin" class="adminShell">
     <aside class="sidebar">
       <img src="assets/company-logo.png" alt="環興科技股份有限公司">
-      <div class="adminIdentity"><b>通用問卷後台</b><small id="adminUser"></small></div>
-      <button class="nav active" onclick="showPanel('formsPanel',this)">問卷管理</button>
-      <button class="nav" onclick="showPanel('editorPanel',this);startNewForm()">新增問卷</button>
-      <button class="nav" onclick="showPanel('membersPanel',this)">人員管理</button>
-      <button class="nav" onclick="showPanel('resultsPanel',this)">填寫結果</button>
+      <div class="adminIdentity"><b>公司通用問卷</b><small id="adminUser"></small></div>
+      <button class="nav active" onclick="showPanel('dashboardPanel',this)">儀表板</button>
+      <details class="navGroup" open>
+        <summary>問卷作業 <span class="navChevron"></span></summary>
+        <div class="navMenu">
+          <button class="nav" onclick="showPanel('formsPanel',this)">問卷管理</button>
+          <button class="nav" onclick="showPanel('editorPanel',this);startNewForm()">建立或編輯問卷</button>
+          <button class="nav" onclick="showPanel('resultsPanel',this)">填寫結果</button>
+          <button class="nav navExport" onclick="exportResults()">Excel 匯出</button>
+        </div>
+      </details>
+      <details class="navGroup" open>
+        <summary>系統管理 <span class="navChevron"></span></summary>
+        <div class="navMenu">
+          <button class="nav" onclick="showPanel('membersPanel',this)">人員管理</button>
+        </div>
+      </details>
     </aside>
     <main class="adminMain">
       <header class="adminHead">
         <div><h1 id="panelTitle">問卷管理</h1><p id="activeFormLabel">尚未選擇問卷</p></div>
-        <div class="adminTools"><select id="activeFormSelect" onchange="selectForm(this.value)"></select><button class="toolBtn" onclick="copyFormLink()">複製前台</button><button class="toolBtn" onclick="showFront()">查看前台</button><button class="toolBtn" onclick="logout()">登出</button></div>
+        <div class="adminTools"><select id="activeFormSelect" onchange="selectForm(this.value)"></select><button class="toolBtn" onclick="copyFormLink()">複製連結</button><button class="toolBtn" onclick="showFront()">查看前台</button><button class="toolBtn" onclick="logout()">登出</button></div>
       </header>
 
-      <section id="formsPanel" class="panel active">
-        <div class="summaryGrid"><div class="metric"><span>問卷總數</span><b id="formCount">0</b></div><div class="metric"><span>目前問卷</span><b id="currentFormName">—</b></div><div class="metric"><span>已填份數</span><b id="responseCount">0</b></div></div>
-        <div class="card"><div class="sectionHead"><div><h2>問卷列表</h2><p>各問卷都有獨立前台網址，資料彼此分開。</p></div><div class="buttonRow"><button class="btn" onclick="createUniformTemplate()">建立外套尺寸範本</button><button class="btn primary" onclick="showPanel('editorPanel');startNewForm()">＋ 新增空白問卷</button></div></div><div id="formsTable"></div></div>
+      <section id="dashboardPanel" class="panel active">
+        <div class="summaryGrid dashboardMetrics"><div class="metric"><span>填寫份數</span><b id="dashResponseCount">0</b></div><div class="metric"><span>應填人數</span><b id="dashExpectedCount">—</b></div><div class="metric"><span>完成率</span><b id="dashCompletionRate">—</b></div><div class="metric"><span>未填人數</span><b id="dashMissingCount">—</b></div></div>
+        <div class="dashboardGrid">
+          <div class="card"><div class="sectionHead"><div><h2>目前問卷</h2><p id="dashCurrentNote">請先選擇問卷。</p></div><div class="buttonRow"><button class="btn" onclick="copyFormLink()">複製連結</button><button class="btn primary" onclick="showFront()">查看前台</button></div></div><div id="dashboardCurrent"></div></div>
+          <div class="card"><div class="sectionHead"><div><h2>快速作業</h2><p>常用操作集中在這裡，避免在不同頁面之間來回找按鈕。</p></div></div><div class="quickActions"><button class="btn primary" onclick="showPanel('editorPanel');startNewForm()">建立問卷</button><button class="btn" onclick="showPanel('formsPanel')">問卷管理</button><button class="btn" onclick="showPanel('resultsPanel')">填寫結果</button><button class="btn success" onclick="exportResults()">Excel 匯出</button></div></div>
+        </div>
+      </section>
+
+      <section id="formsPanel" class="panel">
+        <div class="summaryGrid"><div class="metric"><span>問卷總數</span><b id="formCount">0</b></div><div class="metric"><span>目前問卷</span><b id="currentFormName">—</b></div><div class="metric"><span>填寫份數</span><b id="responseCount">0</b></div></div>
+        <div class="card"><div class="sectionHead"><div><h2>問卷列表</h2><p>問卷各自保留前台連結、填寫結果與分享權限，可依角色分開管理。</p></div><div class="buttonRow"><button class="btn" onclick="createUniformTemplate()">建立外套尺寸範本</button><button class="btn primary" onclick="showPanel('editorPanel');startNewForm()">新增問卷</button></div></div><div id="formsTable"></div></div>
       </section>
 
       <section id="editorPanel" class="panel">
@@ -71,7 +91,7 @@
       <form id="responseEditForm" onsubmit="saveEditedResponse(event)"><div id="responseEditBody"></div><div class="buttonRow modalActions"><button id="saveResponseBtn" class="btn primary" type="submit">儲存變更</button><button class="btn" type="button" onclick="closeResponseEditor()">取消</button></div></form>
     </div>
   </div>
-  <script src="js/config.js?v=1.19"></script>
-  <script src="js/app.js?v=1.19"></script>
+  <script src="js/config.js?v=1.22"></script>
+  <script src="js/app.js?v=1.22"></script>
 </body>
 </html>
