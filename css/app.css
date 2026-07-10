@@ -1507,6 +1507,195 @@ body{
 @media(max-width:1120px){.adminShell .side.topNav{gap:14px;padding:10px 18px}.adminShell .topNav .ab{padding-right:16px}.adminShell .topNav .topBrandLogo{width:205px}.adminShell .topNav .nav,.adminShell .topNavGroup>summary{min-width:108px;padding-left:11px;padding-right:11px}.compactAdminToolbar #activeFormSelect{flex-basis:290px;width:290px;max-width:290px}}
 @media(max-width:820px){.adminShell .side.topNav{flex-wrap:wrap}.adminShell .topNav .ab{border-right:0}.adminShell .topUserArea{margin-left:auto}.adminShell .topNavLinks{order:3;width:100%;padding-top:8px;border-top:1px solid #edf1f5;overflow-x:auto}.adminShell .adminPageHead.compactAdminToolbar{flex-wrap:wrap;gap:10px}.compactAdminToolbar #panelTitle{width:100%;font-size:24px}.compactAdminToolbar .headActions{justify-content:flex-start;width:100%;flex-wrap:wrap}.compactAdminToolbar #activeFormSelect{flex:1 1 100%;width:100%;max-width:none}}
 @media(max-width:520px){.adminShell .side.topNav{padding:9px 12px}.adminShell .topNav .topBrandLogo{width:160px}.adminShell .topNav .nav,.adminShell .topNavGroup>summary{min-width:104px;font-size:13px}.adminShell .topUserIcon{display:none}.adminShell .topLogout{padding:8px 11px}.modalActions{flex-direction:column}.modalActions .btn{width:100%}}
+
+/* === Final Admin-family polish for v1.25 === */
+.memberListTools{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:16px 0 12px;
+}
+.memberListTools input{
+  max-width:420px;
+  min-height:46px;
+  margin:0;
+}
+.memberListTools span{
+  color:#607086;
+  font-weight:800;
+  white-space:nowrap;
+}
+.memberEditor{
+  margin:16px 0;
+  padding:18px;
+  border:1px solid #dce5ed;
+  border-radius:13px;
+  background:#fbfdff;
+}
+.memberFormGrid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+}
+.statusBadge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:30px;
+  padding:5px 10px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:900;
+}
+.statusBadge.active{background:#dcfce7;color:#166534}
+.statusBadge.inactive{background:#f1f5f9;color:#64748b}
+.analysisSummary,.completionStats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin:0 0 16px;
+}
+.analysisMetric,.completionStat{
+  min-height:92px;
+  padding:16px;
+  border:1px solid #dce5ed;
+  border-radius:13px;
+  background:#fff;
+}
+.analysisMetric span,.completionStat span{
+  display:block;
+  color:#65758c;
+  font-size:14px;
+  font-weight:900;
+}
+.analysisMetric b,.completionStat strong{
+  display:block;
+  margin-top:6px;
+  color:#14233b;
+  font-size:28px;
+}
+.analysisGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.analysisCard{
+  padding:18px;
+  border:1px solid #dce5ed;
+  border-radius:13px;
+  background:#fff;
+}
+.analysisCard h3{
+  margin:0 0 12px;
+  color:#102b4b;
+}
+.pieLayout{
+  display:grid;
+  grid-template-columns:150px 1fr;
+  gap:16px;
+  align-items:center;
+}
+.pieChart{
+  width:132px;
+  aspect-ratio:1;
+  border-radius:50%;
+  border:1px solid #dce5ed;
+}
+.chartLegend,.barList,.textAnswerList{
+  display:grid;
+  gap:8px;
+}
+.legendRow,.barRowHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.legendDot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  flex:none;
+}
+.barTrack{
+  height:9px;
+  margin-top:5px;
+  overflow:hidden;
+  border-radius:999px;
+  background:#e8edf4;
+}
+.barFill{
+  height:100%;
+  border-radius:999px;
+  background:#2867c8;
+}
+.textAnswer{
+  padding:10px 12px;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  background:#f8fafc;
+}
+.missingPanel{
+  margin:0 0 18px;
+  padding:18px;
+  border:1px solid #dce5ed;
+  border-radius:13px;
+  background:#fff;
+}
+.missingPanelHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+.missingPanelHead h3{
+  margin:0;
+  color:#102b4b;
+}
+.missingPanelHead p{
+  margin:4px 0 0;
+  color:#68758a;
+}
+.missingTools{
+  display:flex;
+  align-items:end;
+  gap:10px;
+}
+.missingTools label{
+  min-width:180px;
+  margin:0;
+}
+.frontShell .choice{
+  min-height:52px;
+  border-radius:13px;
+  background:#fff;
+}
+.frontShell .choice:has(input:checked){
+  border-color:#86b7e2;
+  background:#eef7ff;
+  box-shadow:0 0 0 2px rgba(37,99,235,.08);
+}
+.frontShell input[type="checkbox"],.frontShell input[type="radio"]{
+  accent-color:#397bc7;
+}
+.submitSuccessCard h2{
+  color:#102b4b;
+}
+@media(max-width:980px){
+  .memberFormGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .analysisGrid{grid-template-columns:1fr}
+  .pieLayout{grid-template-columns:1fr}
+  .missingPanelHead,.missingTools,.memberListTools{align-items:stretch;flex-direction:column}
+  .missingTools label,.memberListTools input{max-width:none;width:100%}
+}
+@media(max-width:560px){
+  .memberFormGrid,.analysisSummary,.completionStats{grid-template-columns:1fr}
+  .analysisMetric,.completionStat{min-height:auto}
+  .frontShell .submitArea{align-items:stretch;flex-direction:column}
+  .frontShell .submitArea .btn{width:100%}
+}
 @media(max-width:640px){
   .adminShell .adminHead{display:block}
   .adminTools{margin-top:12px}
