@@ -1,0 +1,5 @@
+/* v1.14 maintenance polish */
+.identitySettings p{color:#667085}
+.permissionForm label small{margin-top:6px;font-weight:500;line-height:1.55}
+.permissionForm select#managerEmail{min-width:0}
+.departmentChoices:empty:before{content:'尚無部門資料';color:#667085}

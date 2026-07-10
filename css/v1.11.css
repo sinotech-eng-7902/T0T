@@ -1,0 +1,2 @@
+.identityGrid{grid-template-columns:1fr 1.25fr}
+@media(max-width:700px){.identityGrid{grid-template-columns:1fr}}

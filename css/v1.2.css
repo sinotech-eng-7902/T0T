@@ -1,0 +1,6 @@
+.identitySettings{display:grid;grid-template-columns:minmax(220px,.65fr) 1.35fr;gap:18px;margin:18px 0;padding:17px;border:1px solid #d7e3e5;border-radius:13px;background:#f8fbfa}
+.identitySettings p{margin:2px 0 9px;color:var(--muted);font-size:12px}.departmentChoices{display:flex;flex-wrap:wrap;gap:8px}
+.departmentChoice{display:flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid #d6e1e3;border-radius:9px;background:#fff;font-weight:700}.departmentChoice input{width:auto;margin:0}
+.identityCard{border-left:4px solid var(--teal)}.identityGrid{display:grid;grid-template-columns:1fr 1.25fr .8fr;gap:12px}.identityGrid label{font-weight:900}.identityGrid input,.identityGrid select{margin-top:7px}.readonlyField{background:#eef3f4!important;color:#526778}
+.identitySettings.disabled{opacity:.55}.identitySettings.disabled .departmentChoices{pointer-events:none}
+@media(max-width:700px){.identitySettings,.identityGrid{grid-template-columns:1fr}}

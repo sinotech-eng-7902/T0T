@@ -1,0 +1,15 @@
+/* v1.12 missing response roster */
+.missingPanel{margin:20px 0;padding:18px;border:1px solid #dce7e5;border-radius:18px;background:#f8fbfa}
+.missingPanelHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+.missingPanelHead h3{margin:0 0 5px}
+.missingPanelHead p{margin:0;color:#667085}
+.missingTools{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.missingTools label{min-width:190px;font-weight:800}
+.missingTools select{margin-top:6px}
+.completionStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.completionStat{padding:12px 14px;border:1px solid #dce7e5;border-radius:13px;background:#fff}
+.completionStat span{display:block;color:#667085;font-size:13px;margin-bottom:3px}
+.completionStat strong{font-size:24px;color:#174f4b}
+.missingEmpty{padding:18px;border-radius:13px;background:#edf8f3;color:#27634f;font-weight:800;text-align:center}
+@media(max-width:760px){.missingPanelHead{flex-direction:column}.missingTools{width:100%}.missingTools label,.missingTools .btn{width:100%}.completionStats{grid-template-columns:1fr}}
+
