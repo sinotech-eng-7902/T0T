@@ -209,6 +209,17 @@ if(confirmDeleteFormModalV138Base){
     return Promise.resolve(promise).finally(function(){setTimeout(syncAdminModalLockV138,0)});
   };
 }
+/* v1.39: redesign creator change dialog as a clean form field, not an inline label/select block. */
+creatorDialog=function(f){
+  return new Promise(function(resolve){
+    document.querySelectorAll('#creatorDialogMask').forEach(function(el){el.remove()});
+    var current=formCreatedByEmail(f);
+    document.body.insertAdjacentHTML('beforeend','<div id="creatorDialogMask" class="modalMask creatorDialogMask creatorDialogV139" style="display:grid"><div class="dialogCard creatorDialogCardV139" role="dialog" aria-modal="true" aria-labelledby="creatorDialogTitleV139"><div class="modalHeader creatorDialogHeaderV139"><div><h3 id="creatorDialogTitleV139">變更問卷建立者</h3><p>調整後，該成員會成為此問卷的建立者與主要管理人。</p></div><button class="modalClose" type="button" onclick="closeCreatorDialog(\'\')" aria-label="關閉">×</button></div><div class="creatorDialogBodyV139"><div class="creatorDialogSurveyV139"><span>目前問卷</span><strong>'+esc(f.title||'未命名問卷')+'</strong></div><label class="creatorFieldV139" for="creatorEmailSelect"><span>建立者</span><select id="creatorEmailSelect"><option value="">請選擇建立者</option>'+creatorSelectOptions(current)+'</select><small>請從共用人員名單選擇，系統會同步移除該成員在本問卷的分享權限，避免重複身分。</small></label></div><div class="modalActions creatorDialogActionsV139"><button class="btn" type="button" onclick="closeCreatorDialog(\'\')">取消</button><button class="btn primary" type="button" onclick="closeCreatorDialog(document.getElementById(\'creatorEmailSelect\').value)">儲存</button></div></div></div>');
+    $('creatorDialogMask')._resolve=resolve;
+    openManagedModalV138('creatorDialogMask');
+    setTimeout(function(){var select=$('creatorEmailSelect');if(select)select.focus()},80);
+  });
+};
 if(typeof window.startUniversalApp==='function')window.startUniversalApp();
 
 
