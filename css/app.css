@@ -3438,19 +3438,20 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
 /* v1.37：大型 Modal 對齊行政部 responseEditMask，避免內容頂出畫面 */
 #assistedFillMask.modalMask,
 #responseEditMask.modalMask{
-  z-index:90;
+  z-index:10050;
   overflow:auto;
   align-items:flex-start;
   justify-items:center;
   place-items:start center;
-  padding:28px 18px;
+  padding:32px 18px;
+  background:rgba(15,29,42,.56);
 }
 #assistedFillMask .responseEditCard,
 #responseEditMask .responseEditCard{
   display:flex;
   flex-direction:column;
-  width:min(980px,100%);
-  max-height:calc(100vh - 56px);
+  width:min(760px,100%);
+  max-height:calc(100vh - 64px);
   margin:auto;
   padding:0;
   overflow:hidden;
@@ -3530,4 +3531,81 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
   #responseEditBody,
   #responseEditForm .modalActions{padding-left:16px;padding-right:16px}
   #responseEditForm .modalActions .btn{flex:1}
+}
+
+/* v1.38：後台 Modal 統一高於固定頁首，並讓背景頁面停止捲動 */
+html.adminModalOpenV138,
+body.adminModalOpenV138{
+  overflow:hidden!important;
+}
+.adminShell .modalMask,
+body>.modalMask{
+  z-index:10050;
+}
+.adminShell .modalMask[style*="display: grid"],
+body>.modalMask[style*="display: grid"]{
+  display:grid!important;
+  position:fixed;
+  inset:0;
+  overflow:auto;
+  align-items:flex-start;
+  justify-items:center;
+  place-items:start center;
+  padding:32px 18px;
+  background:rgba(15,29,42,.56);
+}
+#creatorDialogMask.modalMask{
+  z-index:10060;
+}
+#creatorDialogMask .dialogCard{
+  width:min(760px,100%);
+  max-height:calc(100vh - 64px);
+  margin:auto;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  border-radius:18px;
+}
+#creatorDialogMask .modalHeader{
+  flex:0 0 auto;
+  padding:22px 24px 18px;
+  border-bottom:1px solid var(--line);
+}
+#creatorDialogMask .dialogMessage,
+#creatorDialogMask .dialogInputWrap{
+  margin:0;
+  padding:0 24px;
+}
+#creatorDialogMask .dialogMessage{
+  padding-top:20px;
+}
+#creatorDialogMask .dialogInputWrap{
+  padding-top:14px;
+  padding-bottom:20px;
+}
+#creatorDialogMask .modalActions{
+  flex:0 0 auto;
+  position:static;
+  margin:0;
+  padding:16px 24px;
+  border-top:1px solid var(--line);
+  background:#fafbfd;
+}
+#dialogMask.modalMask{
+  z-index:10060;
+}
+#dialogMask .dialogCard{
+  max-height:calc(100vh - 64px);
+  overflow:auto;
+  margin:auto;
+}
+.deleteFormModalV136{
+  z-index:10070;
+}
+@media(max-width:760px){
+  .adminShell .modalMask[style*="display: grid"],
+  body>.modalMask[style*="display: grid"]{padding:12px}
+  #creatorDialogMask .dialogCard,
+  #dialogMask .dialogCard{max-height:calc(100vh - 24px)}
 }

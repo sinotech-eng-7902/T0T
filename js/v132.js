@@ -120,6 +120,95 @@ function openDialog(opts){opts=opts||{};var mask=$('dialogMask'),inputWrap=$('di
 function inputConfirmDialog(opts){opts=opts||{};return openDialog({title:opts.title||'確認操作',message:opts.message||'',messageHtml:opts.messageHtml||'',danger:!!opts.danger,inputLabel:opts.inputLabel||'請輸入確認文字',inputPlaceholder:opts.inputPlaceholder||'',requiredText:opts.requiredText||'',confirmText:opts.confirmText||(opts.danger?'確認刪除':'確定'),deleteConfirm:!!opts.deleteConfirm}).then(function(result){return result.ok?result.value:null})}
 function confirmDeleteFormModalV136(f){return new Promise(function(resolve){document.querySelectorAll('.deleteFormModalV136').forEach(function(el){el.remove()});var overlay=document.createElement('div');overlay.className='deleteFormModalV136';overlay.innerHTML='<div class="deleteFormDialogV136" role="dialog" aria-modal="true" aria-label="永久刪除問卷"><button type="button" class="deleteFormCloseV136" aria-label="關閉">×</button><h3>永久刪除問卷</h3><p class="muted">這會刪除「'+esc(f.title||f.id||'未命名問卷')+'」及本問卷的填寫資料。此操作無法復原。</p><div class="deleteFormScopeV136"><b>會一起刪除</b><ul><li>問卷基本資料、題目設定與參考圖片設定</li><li>填寫結果、填寫鎖定與協助填寫紀錄</li><li>本問卷的分享成員與權限設定</li></ul><b>會保留</b><ul><li>人員主檔、部門資料</li><li>其他問卷與其他問卷的填寫資料</li></ul></div><label class="deleteFormConfirmFieldV136">請輸入 DELETE 確認刪除<input class="deleteFormConfirmInputV136" autocomplete="off" placeholder="DELETE"></label><div class="deleteFormActionsV136"><button type="button" class="btn deleteFormCancelV136">取消</button><button type="button" class="btn danger deleteFormConfirmBtnV136" disabled>永久刪除</button></div></div>';document.body.appendChild(overlay);var input=overlay.querySelector('.deleteFormConfirmInputV136'),confirmBtn=overlay.querySelector('.deleteFormConfirmBtnV136');function close(ok){overlay.remove();resolve(!!ok)}overlay.querySelector('.deleteFormCloseV136').onclick=function(){close(false)};overlay.querySelector('.deleteFormCancelV136').onclick=function(){close(false)};input.addEventListener('input',function(){confirmBtn.disabled=input.value.trim()!=='DELETE'});confirmBtn.onclick=function(){if(input.value.trim()==='DELETE')close(true)};setTimeout(function(){input.focus()},50)})}
 async function deleteForm(id){var f=forms.find(function(x){return x.id===id});if(!f)return;if(!canDeleteFormDirectly(f))return notify('只有系統管理員或問卷建立者可以刪除此問卷','error');var confirmed=await confirmDeleteFormModalV136(f);if(!confirmed)return;setPageLoading(true,'正在刪除問卷與關聯資料');try{var responseSnap=await col('universalResponses').where('formId','==',id).get(),lockSnap=await col('universalResponseLocks').where('formId','==',id).get(),managerSnap=await col('universalFormManagers').where('formId','==',id).get();await deleteSnapshotInChunks(responseSnap);await deleteSnapshotInChunks(lockSnap);await deleteSnapshotInChunks(managerSnap);await doc('universalForms',id).delete();if(activeFormId===id)activeFormId='';await loadAdminData();showPanel('formsPanel');toast('問卷及其關聯資料已刪除','success')}catch(e){console.error(e);notify('刪除失敗，請確認 Firestore 規則已部署','error')}finally{setPageLoading(false)}}
+/* v1.38: keep admin modal overlays above the sticky header and lock background scroll. */
+function syncAdminModalLockV138(){
+  var hasOpenModal=Array.from(document.querySelectorAll('.modalMask')).some(function(el){
+    return window.getComputedStyle(el).display!=='none';
+  })||!!document.querySelector('.deleteFormModalV136');
+  document.documentElement.classList.toggle('adminModalOpenV138',hasOpenModal);
+  document.body.classList.toggle('adminModalOpenV138',hasOpenModal);
+}
+function openManagedModalV138(id){
+  var el=$(id);
+  if(!el)return;
+  el.style.display='grid';
+  el.classList.add('adminModalActiveV138');
+  syncAdminModalLockV138();
+}
+function closeManagedModalV138(id){
+  var el=$(id);
+  if(el){
+    el.style.display='none';
+    el.classList.remove('adminModalActiveV138');
+  }
+  setTimeout(syncAdminModalLockV138,0);
+}
+var openAssistedFillV138Base=typeof openAssistedFill==='function'?openAssistedFill:null;
+if(openAssistedFillV138Base){
+  openAssistedFill=function(memberId){
+    openAssistedFillV138Base(memberId);
+    if($('assistedFillMask')&&$('assistedFillMask').style.display!=='none')openManagedModalV138('assistedFillMask');
+  };
+}
+var closeAssistedFillV138Base=typeof closeAssistedFill==='function'?closeAssistedFill:null;
+if(closeAssistedFillV138Base){
+  closeAssistedFill=function(){
+    closeAssistedFillV138Base();
+    closeManagedModalV138('assistedFillMask');
+  };
+}
+var openResponseEditorV138Base=typeof openResponseEditor==='function'?openResponseEditor:null;
+if(openResponseEditorV138Base){
+  openResponseEditor=function(id){
+    openResponseEditorV138Base(id);
+    if($('responseEditMask')&&$('responseEditMask').style.display!=='none')openManagedModalV138('responseEditMask');
+  };
+}
+var closeResponseEditorV138Base=typeof closeResponseEditor==='function'?closeResponseEditor:null;
+if(closeResponseEditorV138Base){
+  closeResponseEditor=function(){
+    closeResponseEditorV138Base();
+    closeManagedModalV138('responseEditMask');
+  };
+}
+var openDialogV138Base=typeof openDialog==='function'?openDialog:null;
+if(openDialogV138Base){
+  openDialog=function(opts){
+    var result=openDialogV138Base(opts);
+    openManagedModalV138('dialogMask');
+    return result;
+  };
+}
+var closeDialogV138Base=typeof closeDialog==='function'?closeDialog:null;
+if(closeDialogV138Base){
+  closeDialog=function(ok){
+    closeDialogV138Base(ok);
+    setTimeout(syncAdminModalLockV138,0);
+  };
+}
+var creatorDialogV138Base=typeof creatorDialog==='function'?creatorDialog:null;
+if(creatorDialogV138Base){
+  creatorDialog=function(f){
+    var promise=creatorDialogV138Base(f);
+    setTimeout(function(){openManagedModalV138('creatorDialogMask')},0);
+    return promise;
+  };
+}
+var closeCreatorDialogV138Base=typeof closeCreatorDialog==='function'?closeCreatorDialog:null;
+if(closeCreatorDialogV138Base){
+  closeCreatorDialog=function(value){
+    closeCreatorDialogV138Base(value);
+    setTimeout(syncAdminModalLockV138,0);
+  };
+}
+var confirmDeleteFormModalV138Base=typeof confirmDeleteFormModalV136==='function'?confirmDeleteFormModalV136:null;
+if(confirmDeleteFormModalV138Base){
+  confirmDeleteFormModalV136=function(f){
+    var promise=confirmDeleteFormModalV138Base(f);
+    setTimeout(syncAdminModalLockV138,0);
+    return Promise.resolve(promise).finally(function(){setTimeout(syncAdminModalLockV138,0)});
+  };
+}
 if(typeof window.startUniversalApp==='function')window.startUniversalApp();
 
 
