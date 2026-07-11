@@ -3434,3 +3434,100 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
   .deleteFormActionsV136{flex-direction:column}
   .deleteFormActionsV136 .btn{width:100%}
 }
+
+/* v1.37：大型 Modal 對齊行政部 responseEditMask，避免內容頂出畫面 */
+#assistedFillMask.modalMask,
+#responseEditMask.modalMask{
+  z-index:90;
+  overflow:auto;
+  align-items:flex-start;
+  justify-items:center;
+  place-items:start center;
+  padding:28px 18px;
+}
+#assistedFillMask .responseEditCard,
+#responseEditMask .responseEditCard{
+  display:flex;
+  flex-direction:column;
+  width:min(980px,100%);
+  max-height:calc(100vh - 56px);
+  margin:auto;
+  padding:0;
+  overflow:hidden;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 28px 80px rgba(15,23,42,.28);
+}
+#responseEditMask .responseEditCard{
+  width:min(760px,100%);
+}
+#assistedFillMask .sectionHead,
+#responseEditMask .sectionHead{
+  flex:0 0 auto;
+  margin:0;
+  padding:22px 24px 18px;
+  border-bottom:1px solid var(--line);
+}
+#assistedFillMask .sectionHead h2,
+#responseEditMask .sectionHead h2{
+  margin:0 0 6px;
+  font-size:22px;
+  line-height:1.35;
+}
+#assistedFillMask .sectionHead p,
+#responseEditMask .sectionHead p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+}
+#assistedFillMask .sectionHead>.btn,
+#responseEditMask .sectionHead>.btn{
+  flex:0 0 auto;
+  width:72px;
+  min-height:40px;
+  padding:8px 12px;
+  border-radius:10px;
+  background:#f1f4f8;
+  color:#334155;
+}
+#assistedFillBody,
+#responseEditBody{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  padding:20px 24px;
+}
+#responseEditForm{
+  display:flex;
+  min-height:0;
+  flex:1 1 auto;
+  flex-direction:column;
+}
+#responseEditForm .modalActions{
+  flex:0 0 auto;
+  position:static;
+  bottom:auto;
+  margin:0;
+  padding:16px 24px;
+  border-top:1px solid var(--line);
+  background:#fafbfd;
+}
+#assistedFillMask .frontFormStack{
+  margin-top:0;
+}
+#assistedFillMask .questionCard,
+#responseEditMask .editQuestion{
+  box-shadow:none;
+}
+@media(max-width:760px){
+  #assistedFillMask.modalMask,
+  #responseEditMask.modalMask{padding:12px}
+  #assistedFillMask .responseEditCard,
+  #responseEditMask .responseEditCard{max-height:calc(100vh - 24px);border-radius:14px}
+  #assistedFillMask .sectionHead,
+  #responseEditMask .sectionHead,
+  #assistedFillBody,
+  #responseEditBody,
+  #responseEditForm .modalActions{padding-left:16px;padding-right:16px}
+  #responseEditForm .modalActions .btn{flex:1}
+}
