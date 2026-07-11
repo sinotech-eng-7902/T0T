@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.30</title>
+  <title>公司通用問卷調查系統 v1.31</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=1.30">
+  <link rel="stylesheet" href="css/app.css?v=1.31">
 </head>
 <body>
   <div id="toast" class="toast"></div>
   <div id="front" class="frontShell">
-    <header class="frontHeader"><img src="assets/company-logo.png" alt="環興科技股份有限公司"><div class="frontActions"><span id="formStatus" class="statusPill">載入中</span><button class="ghostBtn" onclick="openAdmin()">管理登入</button></div></header>
     <main id="frontMain" class="frontMain"><div class="loading">正在載入問卷…</div></main>
+    <header class="frontHeader" hidden><img src="assets/company-logo.png" alt="環興科技股份有限公司"><div class="frontActions"><span id="formStatus" class="statusPill">載入中</span><button class="ghostBtn" onclick="openAdmin()">管理登入</button></div></header>
   </div>
 
   <div id="loginMask" class="modalMask">
@@ -125,8 +125,8 @@
     </div>
   </div>
   <div id="pageLoading" class="pageLoading" hidden><div>處理中…</div></div>
-  <script src="js/config.js?v=1.30"></script>
-  <script src="js/app.js?v=1.30"></script>
+  <script src="js/config.js?v=1.31"></script>
+  <script src="js/app.js?v=1.31"></script>
 </body>
 </html>
 

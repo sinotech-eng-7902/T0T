@@ -2548,7 +2548,7 @@ body{
   }
 }
 
-/* === v1.30 Management pages and front-end proportion alignment === */
+/* Management pages and front-end proportion alignment */
 .adminShell .main{
   max-width:1660px;
 }
@@ -2865,6 +2865,130 @@ body{
   .analysisMetric,
   .completionStat{
     min-height:auto;
+  }
+}
+
+/* === v1.31 Front order and dashboard metric correction === */
+.frontMain,
+.frontHeader{
+  max-width:1180px;
+}
+.frontMain{
+  padding-top:24px;
+}
+.frontMain>.frontHeader{
+  margin:0 auto 18px;
+  padding:0;
+}
+.frontShell>header.frontHeader[hidden]{
+  display:none!important;
+}
+.frontPreviewBanner{
+  max-width:1180px;
+  margin:-4px auto 18px;
+  padding:11px 14px;
+  border-radius:10px;
+  box-shadow:0 4px 14px rgba(36,95,189,.07);
+}
+.frontPreviewBanner b{
+  font-size:14px;
+}
+.frontPreviewBanner span{
+  font-size:14px;
+}
+.frontPreviewActions .btn{
+  min-height:44px;
+  padding:10px 16px;
+  border-radius:12px;
+}
+.frontMain>.formHero{
+  max-width:1180px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.frontFormStack,
+.frontMain>.successCard,
+.frontMain>.myResponseCard,
+#myResponseBox{
+  max-width:1180px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.formHero{
+  padding:34px 40px;
+}
+.formHero h1{
+  font-size:30px;
+}
+.formHero p{
+  max-width:800px;
+}
+.adminShell .dashboardMetrics{
+  gap:12px;
+}
+.adminShell .dashboardMetrics .metric{
+  min-height:132px;
+  padding:18px;
+  border-radius:12px;
+  border-top:3px solid #5c83bf;
+  box-shadow:none;
+}
+.adminShell .dashboardMetrics .metric b{
+  order:0;
+  margin:0;
+  color:#14233b;
+  font-size:27px;
+  line-height:1.25;
+}
+.adminShell .dashboardMetrics .metric span:not(.metricProgress){
+  display:block;
+  margin-top:6px;
+  color:#667085;
+  font-size:15px;
+  font-weight:700;
+}
+.metricProgress{
+  height:8px;
+  margin-top:10px;
+  background:#e5e7eb;
+}
+@media(max-width:900px){
+  .frontMain,
+  .frontHeader,
+  .frontPreviewBanner,
+  .frontMain>.formHero,
+  .frontFormStack,
+  .frontMain>.successCard,
+  .frontMain>.myResponseCard,
+  #myResponseBox{
+    max-width:none;
+  }
+  .frontMain{
+    padding-top:16px;
+  }
+}
+@media(max-width:640px){
+  .frontPreviewBanner{
+    align-items:stretch;
+    flex-direction:column;
+    margin-top:0;
+  }
+  .frontPreviewActions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .frontMain>.frontHeader{
+    margin-bottom:16px;
+  }
+  .formHero{
+    padding:24px 20px;
+  }
+  .formHero h1{
+    font-size:24px;
+  }
+  .adminShell .dashboardMetrics .metric{
+    min-height:112px;
+    padding:16px;
   }
 }
 
