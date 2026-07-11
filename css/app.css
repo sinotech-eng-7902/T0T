@@ -3234,9 +3234,16 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
   white-space:nowrap;
 }
 
-/* v1.33 刪除確認視窗對齊行政部 */
+/* v1.35 刪除確認視窗排版修正 */
+.modalMask:has(.dialogCard){
+  align-items:flex-start;
+  overflow:auto;
+  padding:34px 20px;
+}
 .dialogCard{
   width:min(720px,calc(100vw - 40px));
+  max-height:calc(100vh - 68px);
+  overflow:auto;
   padding:26px 28px 0;
   border-radius:24px;
 }
@@ -3276,15 +3283,19 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
   font-weight:900;
 }
 .dialogInputWrap.deleteConfirmInput{
+  display:block !important;
   margin-top:8px;
   padding:0;
   border:0;
   background:transparent;
   color:#18304f;
+  font-size:0;
 }
 .dialogInputWrap.deleteConfirmInput input{
+  display:block;
+  width:100%;
   min-height:64px;
-  margin-top:8px;
+  margin-top:0;
   padding:16px 18px;
   border:1px solid #bcd0ef;
   border-radius:14px;
@@ -3298,6 +3309,8 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
   border-color:#3b82f6;
 }
 .dialogCard>.modalActions{
+  position:sticky;
+  bottom:0;
   margin:24px -28px 0;
   padding:18px 28px 24px;
   border-top:1px solid #e2e8f0;
