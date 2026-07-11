@@ -3102,3 +3102,80 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
 .ratingQuestion:has(input[value="8"]:checked) .ratingStar:nth-of-type(-n+8),
 .ratingQuestion:has(input[value="9"]:checked) .ratingStar:nth-of-type(-n+9),
 .ratingQuestion:has(input[value="10"]:checked) .ratingStar:nth-of-type(-n+10){color:#f59e0b;background:#fff7e6;text-shadow:0 1px 0 rgba(120,70,0,.15)}
+
+/* v1.33 填寫管理與介面修正 */
+.resultDetailTools{
+  display:grid;
+  grid-template-columns:minmax(220px,1.2fr) minmax(160px,.8fr) minmax(190px,.8fr) auto;
+  align-items:end;
+  gap:12px;
+  margin:0 0 14px;
+  padding:14px;
+  border:1px solid #dbe5f0;
+  border-radius:12px;
+  background:#f8fbff;
+}
+.resultDetailTools label{
+  display:block;
+  margin:0;
+  color:#102b4b;
+  font-weight:900;
+}
+.resultDetailTools input,
+.resultDetailTools select{
+  width:100%;
+  min-height:44px;
+  margin-top:6px;
+  padding:9px 12px;
+  border:1px solid #cfdbe8;
+  border-radius:10px;
+  background:#fff;
+}
+.resultDetailTools .btn{
+  min-height:44px;
+  white-space:nowrap;
+}
+.creatorNameButton{
+  display:inline-flex;
+  align-items:center;
+  min-height:0;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#0f4f9e;
+  font-weight:900;
+  text-align:left;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.creatorNameButton:hover,
+.creatorNameButton:focus-visible{
+  color:#1d64c8;
+  outline:none;
+}
+.dialogCard{
+  width:min(560px,100%);
+}
+.dialogMessage{
+  margin-top:10px;
+  line-height:1.85;
+}
+.dialogInputWrap{
+  margin-top:18px;
+  padding:14px;
+  border:1px solid #dbe5f0;
+  border-radius:12px;
+  background:#f8fbff;
+}
+.dialogInputWrap input{
+  min-height:46px;
+  margin-top:10px;
+}
+@media(max-width:820px){
+  .resultDetailTools{
+    grid-template-columns:1fr;
+  }
+  .resultDetailTools .btn{
+    width:100%;
+  }
+}
