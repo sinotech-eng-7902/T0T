@@ -296,7 +296,8 @@ async function removeFormManager(id){if(!activeFormId||!canManageForm(activeForm
 
 function renderResults(){let f=activeForm(),progress=f?.identityMode==='member'?completionData(f):null;$('resultCaption').textContent=f?`${f.title}：共 ${responses.length} 份回覆${progress?`；應填 ${progress.expected.length} 人，未填 ${progress.missing.length} 人`:''}`:'請先選擇問卷。';if(!f){$('resultAnalysis').innerHTML='';resultsTable.innerHTML='';let p=$('missingResponsesPanel');if(p)p.style.display='none';return}$('resultAnalysis').innerHTML=renderAnalysis(f);renderMissingMembers(f);let qs=(f.questions||[]).filter(q=>q.type!=='image'),identityHeaders=f.identityMode==='member'?['部門','姓名','員工編號']:[],manage=canManageForm(f.id);resultsTable.innerHTML=table(['送出時間',...identityHeaders,...qs.map(q=>q.title),'操作'],responses.map(r=>{let id=attr(r.id),actions=manage?actionGroup([actionButton('編輯',`openResponseEditor('${id}')`),actionButton('刪除',`deleteResponse('${id}')`,'danger')]):roleBadgeHtml('唯讀',false);return `<tr><td>${esc(r.submittedAtText||'')}</td>${f.identityMode==='member'?`<td>${esc(r.departmentName||'')}</td><td>${esc(r.memberName||'')}</td><td>${esc(r.employeeNo||'')}</td>`:''}${qs.map(q=>`<td>${esc(answerText(q,r))}</td>`).join('')}<td>${actions}</td></tr>`}))}
 
-init().catch(e=>{console.error(e);frontMain.innerHTML='<div class="successCard"><h2>系統載入失敗</h2><p>'+esc(e.message||e)+'</p></div>'});
+window.startUniversalApp=function(){return init().catch(e=>{console.error(e);frontMain.innerHTML='<div class="successCard"><h2>系統載入失敗</h2><p>'+esc(e.message||e)+'</p></div>'})};
+
 
 
 

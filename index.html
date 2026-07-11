@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.31</title>
+  <title>公司通用問卷調查系統 v1.32</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=1.31">
+  <link rel="stylesheet" href="css/app.css?v=1.32">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -84,7 +84,7 @@
       <section id="editorPanel" class="panel">
         <div class="card"><div class="sectionHead"><div><h2 id="editorHeading">新增問卷</h2><p>可建立文字、選項、下拉與圖片說明題目。</p></div><span id="editorMode" class="modeBadge">新增模式</span></div>
           <div class="formBlock"><h3>基本設定</h3><div class="formGrid"><label>問卷標題<span>*</span><input id="formTitle" placeholder="例如：員工制服尺寸調查"></label><label>截止時間<input id="formDeadline" type="datetime-local"></label><label>狀態<select id="formState"><option value="draft">草稿</option><option value="open">開放填寫</option><option value="closed">已關閉</option></select></label></div>
-          <label>問卷說明<textarea id="formDescription" placeholder="請輸入填寫目的、期間與注意事項"></textarea></label></div>
+          <label>問卷說明<textarea id="formDescription" placeholder="請輸入填寫目的、期間與注意事項"></textarea></label><div class="themeSettings"><h4>問卷主題</h4><input id="formTheme" type="hidden" value="appleWhite"><div id="themeChoices" class="themeChoices"></div></div></div>
           <div class="formBlock"><h3>填寫對象</h3><div class="identitySettings"><label>填寫者身分資料<select id="identityMode" onchange="renderTargetDepartments()"><option value="member">使用公司人員資料庫</option><option value="none">不收集／自行設計題目</option></select></label><div><b>開放填寫部門</b><p>請至少選擇一個部門，避免問卷誤開放給非本次調查對象。</p><div id="targetDepartmentBox" class="departmentChoices"></div></div></div></div>
           <div class="formBlock"><h3>參考圖片</h3><div class="driveImageField"><label>頁首參考圖片網址<input id="formImageUrl" placeholder="貼上 Google Drive 分享網址或一般圖片網址" oninput="previewHeaderImage()"></label><p>Google Drive 檔案請設為「知道連結的使用者皆可查看」，分享網址可直接貼入。</p><div id="headerImagePreview" class="imagePreview"></div></div></div>
           <div class="questionHead"><h3>題目設定</h3><button class="btn primary" onclick="addQuestion()">＋ 新增題目</button></div><div id="questionEditor"></div>
@@ -110,6 +110,12 @@
     </div>
   </div>
 
+  <div id="assistedFillMask" class="modalMask">
+    <div class="responseEditCard assistedFillCard">
+      <div class="sectionHead"><div><h2 id="assistedFillTitle">協助填寫問卷</h2><p id="assistedFillCaption"></p></div><button class="btn" type="button" onclick="closeAssistedFill()">關閉</button></div>
+      <div id="assistedFillBody"></div>
+    </div>
+  </div>
   <div id="responseEditMask" class="modalMask">
     <div class="responseEditCard">
       <div class="sectionHead"><div><h2>編輯填寫結果</h2><p id="responseEditCaption"></p></div><button class="btn" type="button" onclick="closeResponseEditor()">關閉</button></div>
@@ -125,10 +131,12 @@
     </div>
   </div>
   <div id="pageLoading" class="pageLoading" hidden><div>處理中…</div></div>
-  <script src="js/config.js?v=1.31"></script>
-  <script src="js/app.js?v=1.31"></script>
+  <script src="js/config.js?v=1.32"></script>
+  <script src="js/app.js?v=1.32"></script>
+  <script src="js/v132.js?v=1.32"></script>
 </body>
 </html>
+
 
 
 
