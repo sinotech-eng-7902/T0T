@@ -42,7 +42,6 @@
           <div class="navMenu topNavMenu">
             <button class="nav" onclick="showPanel('membersPanel',this)">人員管理</button>
             <button id="permissionsNav" class="nav" onclick="showPanel('permissionsPanel',this);loadFormManagers()">權限管理</button>
-            <button class="nav" onclick="showPanel('trashPanel',this)">垃圾桶</button>
           </div>
         </details>
       </div>
@@ -97,13 +96,7 @@
           <div id="memberEditor" class="memberEditor"><div class="sectionHead"><div><h3 id="memberEditorHeading">新增人員</h3><p id="memberEditorMode">新增模式</p></div></div><div class="memberFormGrid"><label>部門<select id="memberDepartment"></select></label><label>姓名<input id="memberName"></label><label>員工編號<input id="memberEmployeeNo"></label><label>Google 帳號<input id="memberGoogleEmail" type="email" placeholder="name@gmail.com"></label><label>狀態<select id="memberActive"><option value="true">啟用</option><option value="false">停用</option></select></label></div><div class="buttonRow"><button id="saveMemberBtn" class="btn primary" onclick="saveMember()">新增人員</button><button class="btn" onclick="cancelMemberEdit()">取消</button></div></div>
           <div id="memberImportResult" class="memberImportResult"></div><div class="memberListTools"><input id="memberSearch" placeholder="搜尋部門、姓名或員工編號" oninput="renderMemberPanel()"><span id="memberCountLabel"></span></div><div id="membersTable"></div>
         </div>
-      </section>
-
-      <section id="trashPanel" class="panel">
-        <div class="card trashCard"><div class="sectionHead"><div><h2>垃圾桶</h2><p>移至垃圾桶的問卷可復原；永久刪除僅限系統管理員操作，且會連動清除回覆、鎖定與分享權限。</p></div></div><div id="trashTable"></div></div>
-      </section>
-
-      <section id="resultsPanel" class="panel">
+      </section>`r`n<section id="resultsPanel" class="panel">
         <div class="card"><div class="sectionHead"><div><h2>填寫結果</h2><p id="resultCaption">請先選擇問卷。</p></div><div class="buttonRow"><button class="btn" onclick="copyFormLink()">複製問卷網址</button><button class="btn success" onclick="exportResults()">Excel 匯出</button></div></div><div id="resultAnalysis"></div><div class="resultDetailHead"><h3>逐筆填寫明細</h3><p>管理員可修正或刪除個別回覆。</p></div><div id="resultsTable"></div></div>
       </section>
     </main>
@@ -136,6 +129,7 @@
   <script src="js/v132.js?v=1.32"></script>
 </body>
 </html>
+
 
 
 
