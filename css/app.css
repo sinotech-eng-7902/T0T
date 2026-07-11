@@ -3866,3 +3866,95 @@ body>.modalMask[style*="display: grid"]{
     padding-right:18px;
   }
 }
+
+/* v1.43：題目編輯器與 Modal 體驗修補 */
+.questionEdit.isEditingV143{
+  border-color:#2563c7;
+  background:#f7fbff;
+  box-shadow:0 0 0 3px rgba(37,99,199,.13);
+}
+.questionEdit.isEditingV143:before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:5px;
+  background:#2563c7;
+}
+.editingChipV143{
+  margin-left:auto;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#e6f1ff;
+  color:#0b5cab;
+  font-size:12px;
+  font-weight:900;
+}
+.editingChipV143[hidden]{
+  display:none!important;
+}
+.questionAddAfterV143{
+  background:#eaf3ff;
+  color:#0b5cab;
+}
+.questionEdit .miniActions{
+  align-items:center;
+}
+.questionEdit .miniActions .btn{
+  min-height:40px;
+}
+.adminShell .modalMask[style*="display: grid"],
+body>.modalMask[style*="display: grid"]{
+  padding-top:28px;
+  padding-bottom:28px;
+}
+#dialogMask .dialogCard,
+#creatorDialogMask.creatorDialogV139 .creatorDialogCardV139,
+.deleteFormDialogV136,
+#assistedFillMask .responseEditCard,
+#responseEditMask .responseEditCard{
+  max-height:calc(100vh - 56px);
+}
+#dialogMask .dialogCard,
+#creatorDialogMask.creatorDialogV139 .creatorDialogCardV139{
+  overflow:hidden;
+}
+#dialogMask .dialogMessage,
+#creatorDialogMask.creatorDialogV139 .creatorDialogBodyV139{
+  overflow:auto;
+}
+.deleteFormDialogV136{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.deleteFormScopeV136{
+  overflow:auto;
+}
+.deleteFormActionsV136,
+#dialogMask .modalActions,
+#creatorDialogMask.creatorDialogV139 .creatorDialogActionsV139,
+#responseEditForm .modalActions{
+  flex-shrink:0;
+}
+@media(max-width:760px){
+  .questionEdit .miniActions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  .questionEdit .miniActions .btn{
+    width:100%;
+  }
+  .adminShell .modalMask[style*="display: grid"],
+  body>.modalMask[style*="display: grid"]{
+    padding:10px;
+  }
+  #dialogMask .dialogCard,
+  #creatorDialogMask.creatorDialogV139 .creatorDialogCardV139,
+  .deleteFormDialogV136,
+  #assistedFillMask .responseEditCard,
+  #responseEditMask .responseEditCard{
+    max-height:calc(100vh - 20px);
+  }
+}
