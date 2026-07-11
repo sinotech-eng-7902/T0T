@@ -2421,7 +2421,7 @@ body{
   }
 }
 
-/* === v1.29 Permission privacy, creator ownership and conservative page width === */
+/* Permission privacy, creator ownership and conservative page width */
 .adminShell .main{
   max-width:1728px;
   margin:0 auto;
@@ -2545,6 +2545,326 @@ body{
   }
   .frontPreviewActions .btn{
     width:100%;
+  }
+}
+
+/* === v1.30 Management pages and front-end proportion alignment === */
+.adminShell .main{
+  max-width:1660px;
+}
+.adminShell .card{
+  border-radius:14px;
+}
+.adminShell .sectionHead h2{
+  font-size:24px;
+}
+.adminShell .sectionHead p{
+  font-size:15px;
+  line-height:1.75;
+}
+.frontHeader,
+.frontMain{
+  max-width:1280px;
+}
+.frontHeader{
+  padding-top:38px;
+  padding-bottom:22px;
+}
+.frontHeader img{
+  width:min(330px,46vw);
+}
+.frontActions{
+  gap:9px;
+}
+.frontActions .statusPill,
+.frontActions .ghostBtn,
+.frontActions .myResponseBtn{
+  min-height:42px;
+  padding:8px 15px;
+  font-size:15px;
+}
+.frontMain{
+  padding-top:18px;
+}
+.formHero{
+  padding:38px 42px;
+  border-radius:16px;
+}
+.formHero h1{
+  max-width:860px;
+  font-size:32px;
+  line-height:1.36;
+}
+.formHero p{
+  max-width:900px;
+  font-size:16px;
+}
+.deadlineBadge{
+  min-height:42px;
+  padding:8px 17px;
+  font-size:15px;
+}
+.frontFormStack{
+  gap:14px;
+  margin-top:20px;
+}
+.frontFormHeading h2{
+  font-size:23px;
+}
+.frontShell .questionCard{
+  padding:20px 22px;
+  border-radius:13px;
+}
+.frontShell .identityCard label.title,
+.frontShell .questionCard label.title{
+  margin-bottom:12px;
+  font-size:18px;
+}
+.frontShell .identityGrid{
+  gap:16px;
+}
+.frontShell .questionCard input[type=text],
+.frontShell .questionCard input[type=number],
+.frontShell .questionCard select,
+.frontShell .questionCard textarea{
+  min-height:52px;
+  border-radius:10px;
+  padding:10px 14px;
+}
+.frontShell .choiceList{
+  gap:10px;
+}
+.frontShell .choice{
+  min-height:54px;
+  padding:12px 16px;
+  border-radius:10px;
+  font-size:16px;
+}
+.frontShell .submitArea{
+  justify-content:flex-end;
+  margin-top:18px;
+}
+.frontShell .submitArea .btn{
+  min-width:132px;
+  min-height:46px;
+}
+.frontPreviewBanner{
+  margin-bottom:30px;
+}
+.adminShell .dataTable table{
+  font-size:15px;
+}
+.adminShell .dataTable th{
+  height:54px;
+  padding:12px 16px;
+}
+.adminShell .dataTable td{
+  height:66px;
+  padding:14px 16px;
+}
+.adminShell .dataTable b{
+  font-size:16px;
+}
+.adminShell #formsTable .dataTable table{
+  min-width:1180px;
+}
+.adminShell #formsTable td:nth-child(1){
+  min-width:250px;
+  max-width:320px;
+}
+.adminShell #formsTable td:nth-child(7){
+  min-width:250px;
+}
+.adminShell .tableActions,
+.adminShell .dataTable .buttonRow,
+.adminShell #membersTable .buttonRow{
+  align-items:center;
+  flex-wrap:nowrap;
+  gap:10px;
+}
+.adminShell .tableActions .btn,
+.adminShell .dataTable .buttonRow .btn,
+.adminShell .moreMenu>summary{
+  min-width:58px;
+  min-height:40px;
+  padding:8px 12px;
+  border-radius:8px;
+  font-size:15px;
+  line-height:1.25;
+  white-space:nowrap;
+}
+.adminShell .moreMenu{
+  position:relative;
+}
+.adminShell .moreMenu>div{
+  right:0;
+  left:auto;
+  min-width:180px;
+}
+.adminShell .moreMenu>div .btn{
+  justify-content:flex-start;
+  width:100%;
+  min-height:40px;
+  box-shadow:none;
+}
+.memberEditor{
+  padding:20px;
+  border-color:#dce5ed;
+  border-radius:14px;
+  background:#f8fbff;
+}
+.memberFormGrid{
+  grid-template-columns:1fr 1fr .8fr 1.1fr .65fr;
+  gap:12px;
+}
+.memberFormGrid input,
+.memberFormGrid select{
+  min-height:48px;
+}
+.memberListTools{
+  margin:16px 0 12px;
+}
+.memberListTools input{
+  min-height:48px;
+  max-width:460px;
+  border-radius:10px;
+}
+.adminShell #membersTable .dataTable table{
+  min-width:1080px;
+}
+.adminShell #membersTable td:nth-child(2) b{
+  font-size:16px;
+}
+.adminShell #membersTable td:last-child{
+  min-width:230px;
+}
+.statusBadge{
+  min-width:48px;
+  justify-content:center;
+}
+.analysisSummary,
+.completionStats{
+  gap:14px;
+}
+.analysisMetric,
+.completionStat{
+  min-height:102px;
+  padding:18px 20px;
+  border-radius:13px;
+  background:#fff;
+}
+.analysisMetric b,
+.completionStat strong{
+  font-size:28px;
+}
+.analysisGrid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+}
+.analysisCard{
+  padding:20px;
+  border-radius:14px;
+}
+.analysisCard h3{
+  font-size:18px;
+}
+.pieChart{
+  width:132px;
+  height:132px;
+  flex-basis:132px;
+}
+.missingPanel{
+  margin:22px 0;
+  padding:22px;
+  border-radius:14px;
+  background:#fff;
+}
+.missingPanelHead{
+  margin-bottom:16px;
+}
+.missingTools label select{
+  min-height:44px;
+}
+.resultDetailHead{
+  margin-top:28px;
+  padding-top:4px;
+}
+.adminShell #resultsTable .dataTable table{
+  min-width:1120px;
+}
+.adminShell #resultsTable td:last-child{
+  min-width:140px;
+}
+@media(max-width:1180px){
+  .memberFormGrid{
+    grid-template-columns:1fr 1fr;
+  }
+  .analysisGrid{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:900px){
+  .adminShell .main{
+    max-width:none;
+  }
+  .frontHeader{
+    padding-top:24px;
+  }
+  .frontHeader img{
+    width:min(300px,78vw);
+  }
+  .formHero{
+    padding:30px 24px;
+  }
+  .formHero h1{
+    font-size:27px;
+  }
+  .frontShell .questionCard{
+    padding:18px;
+  }
+  .frontShell .submitArea{
+    justify-content:flex-start;
+  }
+}
+@media(max-width:620px){
+  .frontHeader{
+    gap:16px;
+  }
+  .frontActions{
+    width:100%;
+  }
+  .frontActions .statusPill,
+  .frontActions .ghostBtn,
+  .frontActions .myResponseBtn{
+    flex:1 1 auto;
+    justify-content:center;
+    text-align:center;
+  }
+  .formHero{
+    padding:24px 20px;
+  }
+  .formHero h1{
+    font-size:24px;
+  }
+  .frontShell .choice{
+    min-height:52px;
+    padding:11px 14px;
+  }
+  .frontShell .submitArea{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .frontShell .submitArea .btn{
+    width:100%;
+  }
+  .memberFormGrid,
+  .analysisSummary,
+  .completionStats{
+    grid-template-columns:1fr;
+  }
+  .analysisMetric,
+  .completionStat{
+    min-height:auto;
   }
 }
 
