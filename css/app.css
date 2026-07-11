@@ -3325,3 +3325,112 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
 .dialogCard #dialogCancel{
   background:#eef3f8;
 }
+
+/* v1.36：依行政部 deleteSurveyModalV776 改為獨立刪除視窗 */
+.deleteFormModalV136{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(15,23,42,.48);
+  z-index:9999;
+}
+.deleteFormDialogV136{
+  position:relative;
+  width:min(620px,100%);
+  max-height:calc(100vh - 48px);
+  overflow:auto;
+  padding:28px 32px 30px;
+  border-radius:22px;
+  background:#fff;
+  box-shadow:0 28px 80px rgba(15,23,42,.28);
+  color:#172033;
+  font-size:16px;
+  line-height:1.65;
+}
+.deleteFormDialogV136 h3{
+  margin:0 0 12px;
+  font-size:24px;
+  line-height:1.3;
+}
+.deleteFormCloseV136{
+  position:absolute;
+  right:18px;
+  top:18px;
+  width:40px;
+  height:40px;
+  border:0;
+  border-radius:12px;
+  background:#eef3f8;
+  color:#0d2038;
+  font-size:24px;
+  cursor:pointer;
+}
+.deleteFormDialogV136 .muted{
+  margin:0 48px 14px 0;
+  color:#60718a;
+}
+.deleteFormScopeV136{
+  margin:16px 0;
+  padding:16px 18px;
+  border:1px solid #f1c6c6;
+  border-radius:16px;
+  background:#fff8f8;
+  color:#243b5a;
+}
+.deleteFormScopeV136 b{
+  display:block;
+  margin:0 0 6px;
+}
+.deleteFormScopeV136 ul{
+  margin:8px 0 14px;
+  padding-left:20px;
+}
+.deleteFormScopeV136 ul:last-child{
+  margin-bottom:0;
+}
+.deleteFormConfirmFieldV136{
+  display:block;
+  margin:16px 0 0;
+  color:#18304f;
+  font-weight:900;
+}
+.deleteFormConfirmFieldV136 input{
+  display:block;
+  width:100%;
+  margin-top:8px;
+  padding:13px 14px;
+  border:1px solid #d7e0ec;
+  border-radius:14px;
+  background:#fff;
+  color:#172033;
+  font:inherit;
+  font-weight:800;
+  text-transform:uppercase;
+  outline:none;
+}
+.deleteFormConfirmFieldV136 input:focus{
+  border-color:#3b82f6;
+  box-shadow:0 0 0 3px rgba(59,130,246,.22);
+}
+.deleteFormActionsV136{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:18px;
+}
+.deleteFormActionsV136 .btn{
+  min-width:86px;
+}
+.deleteFormConfirmBtnV136:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+@media(max-width:640px){
+  .deleteFormModalV136{padding:16px}
+  .deleteFormDialogV136{padding:24px 20px 22px;border-radius:18px}
+  .deleteFormActionsV136{flex-direction:column}
+  .deleteFormActionsV136 .btn{width:100%}
+}
