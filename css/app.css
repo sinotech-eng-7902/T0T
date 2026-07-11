@@ -3055,3 +3055,50 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
 .frontFormHeading{margin-bottom:12px}
 .frontFormHeading h2{margin:0;color:#08264a}
 @media (max-width:760px){.themeChoices{grid-template-columns:1fr}.scaleQuestion{align-items:flex-start}.scaleOption{width:38px;height:38px}.matrixTable{min-width:620px}.assistNotice{display:block}.assistedFillCard{max-height:100vh;border-radius:0}.questionSettingsGrid,.validationFields{grid-template-columns:1fr}}
+
+/* === v1.32 editor usability fixes === */
+.adminShell .stickyActions,.stickyActions{position:static;bottom:auto;margin-top:22px;padding:14px;border:1px solid #d8e2ef;border-radius:12px;background:#fff;box-shadow:none}
+.questionEdit{transition:border-color .16s,box-shadow .16s,background .16s;overflow:hidden}
+.questionEdit:focus-within,.questionEdit.activeQuestion{border-color:#2b6dcc;background:#f7fbff;box-shadow:0 0 0 3px rgba(43,109,204,.11)}
+.questionEdit:focus-within:before,.questionEdit.activeQuestion:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#2b6dcc}
+.questionEditHeader{display:flex;align-items:center;gap:10px;margin-bottom:12px;color:#516984;font-weight:900}
+.questionNumber{display:inline-flex;align-items:center;height:30px;padding:0 10px;border-radius:999px;background:#eaf3ff;color:#0b5cab;font-size:13px}
+.dragHandle{border:0;background:#eef3f8;color:#516984;border-radius:9px;width:36px;height:30px;cursor:grab;font-weight:900;line-height:1}
+.dragHandle:active{cursor:grabbing}
+.questionEdit.dragging{opacity:.62;border-style:dashed}
+.questionEdit.dragOver{border-color:#2b6dcc;box-shadow:0 0 0 3px rgba(43,109,204,.14)}
+.questionMoreBar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid #dfe8f2}
+.settingToggle{border:1px solid #d7e3f2;background:#fff;color:#0b3764;border-radius:999px;padding:8px 12px;font-weight:900}
+.settingToggle.active{background:#eaf3ff;border-color:#9fc3ec;color:#0b5cab}
+.collapsibleSetting{display:none;margin-top:12px}
+.collapsibleSetting.open{display:block}
+.optionEditorUnified textarea{min-height:118px;border-color:#cfdced!important;box-shadow:none!important;outline:none}
+.optionEditorUnified textarea:focus{border-color:#2b6dcc!important;box-shadow:0 0 0 3px rgba(43,109,204,.12)!important}
+.questionAddBottom{display:flex;justify-content:center;margin:18px 0 6px}
+.questionAddBottom .btn{min-width:220px}
+.ratingQuestion{direction:ltr;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ratingStar{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;color:#b8c3cf;font-size:28px;line-height:1;cursor:pointer;transition:color .12s,transform .12s,background .12s}
+.ratingStar input{position:absolute;opacity:0;pointer-events:none}
+.ratingStar.isFilled{color:#f59e0b;background:#fff7e6;text-shadow:0 1px 0 rgba(120,70,0,.15)}
+.ratingStar:focus-within{outline:2px solid #2b6dcc;outline-offset:2px}
+.scaleQuestion{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.scaleQuestion .scaleOptions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.scaleLabel{color:#516984;font-weight:800;min-width:fit-content}
+.scaleOption{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid #d8e2ef;border-radius:12px;background:#fff;cursor:pointer;font-weight:900;color:#08264a;transition:background .12s,border-color .12s,box-shadow .12s;color:#08264a}
+.scaleOption input{position:absolute;opacity:0;pointer-events:none}
+.scaleOption:has(input:checked),.scaleOption.isSelected{background:#eaf3ff;border-color:#2b6dcc;color:#0b5cab;box-shadow:0 0 0 2px rgba(43,109,204,.12)}
+.matrixChoice input{width:20px;height:20px;accent-color:#2b6dcc}
+.matrixChoice .matrixChoiceText{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(max-width:760px){.questionEditHeader{align-items:flex-start}.scaleQuestion{align-items:flex-start}.scaleQuestion .scaleOptions{width:100%}.ratingStar{width:34px;height:34px;font-size:25px}.questionAddBottom .btn{width:100%}}
+
+/* v1.32 rating selected-state correction */
+.ratingQuestion:has(input[value="1"]:checked) .ratingStar:nth-of-type(-n+1),
+.ratingQuestion:has(input[value="2"]:checked) .ratingStar:nth-of-type(-n+2),
+.ratingQuestion:has(input[value="3"]:checked) .ratingStar:nth-of-type(-n+3),
+.ratingQuestion:has(input[value="4"]:checked) .ratingStar:nth-of-type(-n+4),
+.ratingQuestion:has(input[value="5"]:checked) .ratingStar:nth-of-type(-n+5),
+.ratingQuestion:has(input[value="6"]:checked) .ratingStar:nth-of-type(-n+6),
+.ratingQuestion:has(input[value="7"]:checked) .ratingStar:nth-of-type(-n+7),
+.ratingQuestion:has(input[value="8"]:checked) .ratingStar:nth-of-type(-n+8),
+.ratingQuestion:has(input[value="9"]:checked) .ratingStar:nth-of-type(-n+9),
+.ratingQuestion:has(input[value="10"]:checked) .ratingStar:nth-of-type(-n+10){color:#f59e0b;background:#fff7e6;text-shadow:0 1px 0 rgba(120,70,0,.15)}
