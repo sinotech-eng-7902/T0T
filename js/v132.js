@@ -464,6 +464,135 @@ async function duplicateForm(id){
   }catch(e){console.error(e);notify('複製問卷失敗，請確認權限或網路狀態','error')}
   finally{setPageLoading(false)}
 }
+/* v1.41: split company-member forms and free-entry forms across dashboard, results, and exports. */
+function formUsesMemberDatabaseV141(form){
+  return !!(form&&form.identityMode==='member');
+}
+function resultAnswerKeywordV141(form,response){
+  var questions=normalizeQuestions((form&&form.questions)||[]).filter(function(q){return q.type!=='image'});
+  return questions.map(function(q){return answerText(q,response)}).join(' ');
+}
+function resultSearchKeywordV141(form,response){
+  var values=[response.submittedAtText,formatAnyDate(response.submittedAt),submissionMethodLabel(response),submitterLabel(response)];
+  if(formUsesMemberDatabaseV141(form))values=values.concat([response.departmentName,response.respondentDepartment,response.memberName,response.respondentName,response.employeeNo,response.respondentEmployeeId]);
+  values.push(resultAnswerKeywordV141(form,response));
+  return values.map(function(x){return String(x||'')}).join(' ').toLowerCase();
+}
+function effectiveResultSortV141(form){
+  if(formUsesMemberDatabaseV141(form))return resultDetailState.sort||'department';
+  return resultDetailState.sort==='oldest'?'oldest':'newest';
+}
+function filteredResultResponses(f){
+  var list=responses.slice(),search=String(resultDetailState.search||'').trim().toLowerCase(),dep=formUsesMemberDatabaseV141(f)?(resultDetailState.department||''):'',sort=effectiveResultSortV141(f);
+  if(search)list=list.filter(function(r){return resultSearchKeywordV141(f,r).includes(search)});
+  if(dep)list=list.filter(function(r){return (r.departmentName||r.respondentDepartment||'')===dep});
+  if(sort==='oldest')list.sort(function(a,b){return resultTimeValue(a)-resultTimeValue(b)});
+  else if(sort==='newest')list.sort(function(a,b){return resultTimeValue(b)-resultTimeValue(a)});
+  else list.sort(function(a,b){return String(a.departmentName||a.respondentDepartment||'').localeCompare(String(b.departmentName||b.respondentDepartment||''),'zh-Hant')||String(a.employeeNo||a.respondentEmployeeId||'').localeCompare(String(b.employeeNo||b.respondentEmployeeId||''),'zh-Hant',{numeric:true})||String(a.memberName||a.respondentName||'').localeCompare(String(b.memberName||b.respondentName||''),'zh-Hant')});
+  return list;
+}
+function ensureResultDetailTools(f){
+  var head=document.querySelector('#resultsPanel .resultDetailHead');
+  if(!head||!f)return;
+  var mode=formUsesMemberDatabaseV141(f)?'member':'free',existing=$('resultDetailTools');
+  if(existing&&existing.dataset.formId===f.id&&existing.dataset.mode===mode)return;
+  if(existing)existing.remove();
+  if(!formUsesMemberDatabaseV141(f)){
+    resultDetailState.department='';
+    if(resultDetailState.sort==='department')resultDetailState.sort='newest';
+  }
+  var deps=resultDepartmentsForForm(f),searchPlaceholder=formUsesMemberDatabaseV141(f)?'姓名、部門、員編':'填答內容、送出時間',departmentHtml=formUsesMemberDatabaseV141(f)?'<label>部門<select id="resultDepartmentFilter" onchange="resultDetailState.department=this.value;renderResults()"><option value="">全部部門</option>'+deps.map(function(dep){return '<option value="'+attr(dep)+'" '+(resultDetailState.department===dep?'selected':'')+'>'+esc(dep)+'</option>'}).join('')+'</select></label>':'',sortOptions=formUsesMemberDatabaseV141(f)?'<option value="department" '+(effectiveResultSortV141(f)==='department'?'selected':'')+'>預設部門 / 員編</option><option value="oldest" '+(effectiveResultSortV141(f)==='oldest'?'selected':'')+'>最早送出</option><option value="newest" '+(effectiveResultSortV141(f)==='newest'?'selected':'')+'>最新送出</option>':'<option value="newest" '+(effectiveResultSortV141(f)==='newest'?'selected':'')+'>最新送出</option><option value="oldest" '+(effectiveResultSortV141(f)==='oldest'?'selected':'')+'>最早送出</option>';
+  var html='<div id="resultDetailTools" class="resultDetailTools" data-form-id="'+attr(f.id)+'" data-mode="'+mode+'"><label>搜尋<input id="resultSearchInput" type="search" placeholder="'+attr(searchPlaceholder)+'" value="'+attr(resultDetailState.search||'')+'" oninput="resultDetailState.search=this.value;renderResults()"></label>'+departmentHtml+'<label>顯示排序<select id="resultSortSelect" onchange="resultDetailState.sort=this.value;renderResults()">'+sortOptions+'</select></label><button class="btn success" type="button" onclick="exportFilteredResults()">Excel 匯出</button></div>';
+  head.insertAdjacentHTML('afterend',html);
+}
+function renderAnalysis(f){
+  var total=responses.length,memberMode=formUsesMemberDatabaseV141(f),departmentsUsed=new Set(responses.map(function(r){return r.departmentName||r.respondentDepartment}).filter(Boolean)),latest=(responses[0]&&responses[0].submittedAtText)||'',depMap=new Map();
+  responses.forEach(function(r){var d=r.departmentName||r.respondentDepartment||'未填部門';depMap.set(d,(depMap.get(d)||0)+1)});
+  var cards=[];
+  if(memberMode)cards.push(pieHtml('部門分布',[...depMap].map(function(x){return {label:x[0],count:x[1]}}),total));
+  for(var q of normalizeQuestions(f.questions||[])){if(q.type==='image')continue;if(['single','dropdown','department'].includes(q.type))cards.push(pieHtml(q.title,optionCounts(q),total));else if(q.type==='multiple')cards.push(multipleAnalysisHtml(q));else if(['linearScale','rating'].includes(q.type))cards.push(scaleAnalysisHtml(q));else if(MATRIX_TYPES_V132.includes(q.type))cards.push(matrixAnalysisHtml(q));else if(['short','long','time','datetime'].includes(q.type))cards.push(textAnalysisHtml(q))}
+  var secondLabel=memberMode?'填寫部門數':'題目數',secondValue=memberMode?departmentsUsed.size:normalizeQuestions(f.questions||[]).filter(function(q){return q.type!=='image'}).length;
+  return '<div class="analysisSummary"><div class="analysisMetric"><span>總填寫份數</span><b>'+total+'</b></div><div class="analysisMetric"><span>'+secondLabel+'</span><b>'+secondValue+'</b></div><div class="analysisMetric"><span>最近填寫時間</span><b style="font-size:15px">'+esc(latest||'尚無紀錄')+'</b></div></div>'+(total?'<div class="analysisGrid">'+cards.join('')+'</div>':'<div class="emptyAnalysis">目前尚無填寫資料，收到回覆後會自動產生統計。</div>');
+}
+function responseDetailRow(f,qs,r,manage){
+  var id=attr(r.id),method='<b>'+esc(submissionMethodLabel(r))+'</b>'+(r.submissionMethod==='assisted'?'<br><small>由 '+esc(submitterLabel(r))+' 協助填寫</small>':''),actions=manage?actionGroup([actionButton('編輯',"openResponseEditor('"+id+"')"),actionButton('刪除',"deleteResponse('"+id+"')",'danger')]):roleBadgeHtml('唯讀',false);
+  return '<tr>'+(formUsesMemberDatabaseV141(f)?'<td>'+esc(r.departmentName||r.respondentDepartment||'')+'</td><td>'+esc(r.memberName||r.respondentName||'')+'</td><td>'+esc(r.employeeNo||r.respondentEmployeeId||'')+'</td>':'')+qs.map(function(q){return '<td>'+esc(answerText(q,r))+'</td>'}).join('')+'<td>'+esc(r.submittedAtText||formatAnyDate(r.submittedAt)||'')+'</td><td>'+method+'</td><td>'+actions+'</td></tr>';
+}
+function renderResults(){
+  var f=activeForm(),progress=f&&formUsesMemberDatabaseV141(f)?completionData(f):null;
+  $('resultCaption').textContent=f?f.title+'：共 '+responses.length+' 份回覆'+(progress?'；應填 '+progress.expected.length+' 人，未填 '+progress.missing.length+' 人':''):'請先選擇問卷。';
+  if(!f){$('resultAnalysis').innerHTML='';resultsTable.innerHTML='';var p=$('missingResponsesPanel');if(p)p.style.display='none';return}
+  $('resultAnalysis').innerHTML=renderAnalysis(f);
+  renderMissingMembers(f);
+  ensureResultDetailTools(f);
+  var qs=normalizeQuestions(f.questions||[]).filter(function(q){return q.type!=='image'}),identityHeaders=formUsesMemberDatabaseV141(f)?['部門','姓名','員工編號']:[],manage=canManageForm(f.id),list=filteredResultResponses(f);
+  resultsTable.innerHTML=table(identityHeaders.concat(qs.map(function(q){return q.title}),['送出時間','填寫方式','操作']),list.map(function(r){return responseDetailRow(f,qs,r,manage)}),emptyState('查無填寫明細','請調整搜尋或篩選條件。'));
+}
+function resultExportRowV141(f,qs,r){
+  var row={'送出時間':r.submittedAtText||formatAnyDate(r.submittedAt)||'','填寫方式':submissionMethodLabel(r)};
+  if(formUsesMemberDatabaseV141(f)){row['部門']=r.departmentName||r.respondentDepartment||'';row['姓名']=r.memberName||r.respondentName||'';row['員工編號']=r.employeeNo||r.respondentEmployeeId||'';row['實際填寫者']=r.memberName||r.respondentName||'';row['協助填寫者']=r.submissionMethod==='assisted'?submitterLabel(r):''}
+  qs.forEach(function(q){row[q.title]=answerText(q,r)});
+  return row;
+}
+function exportResults(){
+  var f=activeForm();if(!f)return notify('請先選擇問卷');
+  setPageLoading(true,'正在產生 Excel');
+  try{
+    var qs=normalizeQuestions(f.questions||[]).filter(function(q){return q.type!=='image'}),detailRows=responses.map(function(r){return resultExportRowV141(f,qs,r)}),detailSheet=detailRows.length?XLSX.utils.json_to_sheet(detailRows):XLSX.utils.aoa_to_sheet([['目前尚無填寫明細']]),wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,cleanSummarySheet(f),'選項統計總表');
+    if(formUsesMemberDatabaseV141(f)){
+      XLSX.utils.book_append_sheet(wb,departmentCrossSheet(f),'部門交叉統計');
+      XLSX.utils.book_append_sheet(wb,completionProgressSheet(f),'填寫進度');
+      XLSX.utils.book_append_sheet(wb,missingMembersSheet(f),'未填寫名單');
+    }
+    XLSX.utils.book_append_sheet(wb,detailSheet,'填寫明細');
+    XLSX.writeFile(wb,(f.title||'問卷')+'_統計報表.xlsx');
+    toast('Excel 已匯出','success');
+  }catch(e){console.error(e);notify('Excel 匯出失敗','error')}
+  finally{setPageLoading(false)}
+}
+function exportFilteredResults(){
+  var f=activeForm();if(!f)return notify('請先選擇問卷');
+  var qs=normalizeQuestions(f.questions||[]).filter(function(q){return q.type!=='image'}),list=filteredResultResponses(f),rows=list.map(function(r){return resultExportRowV141(f,qs,r)});
+  setPageLoading(true,'正在匯出填寫明細');
+  try{var wb=XLSX.utils.book_new(),sheet=rows.length?XLSX.utils.json_to_sheet(rows):XLSX.utils.aoa_to_sheet([['查無填寫明細']]);XLSX.utils.book_append_sheet(wb,sheet,'填寫明細');XLSX.writeFile(wb,(f.title||'問卷')+'_填寫明細.xlsx');toast('填寫明細已匯出','success')}catch(e){console.error(e);notify('填寫明細匯出失敗','error')}finally{setPageLoading(false)}
+}
+function setMetricLabelV141(id,label){
+  var metric=$(id)&&$(id).closest('.metric'),span=metric&&metric.querySelector('span:not(.metricProgress)');
+  if(span)span.textContent=label;
+}
+function latestResponseTextV141(){
+  var list=responses.slice().sort(function(a,b){return resultTimeValue(b)-resultTimeValue(a)});
+  return list[0]?(list[0].submittedAtText||formatAnyDate(list[0].submittedAt)||'未紀錄'):'尚無紀錄';
+}
+function renderDashboard(){
+  var f=activeForm(),memberMode=formUsesMemberDatabaseV141(f),progress=memberMode?completionData(f):null,rate=progress&&progress.expected.length?Math.round(progress.filled.length*1000/progress.expected.length)/10:null,questionCount=f?normalizeQuestions(f.questions||[]).filter(function(q){return q.type!=='image'}).length:0;
+  setMetricLabelV141('dashResponseCount','填寫份數');
+  setMetricLabelV141('dashExpectedCount',memberMode?'應填人數':'題目數');
+  setMetricLabelV141('dashCompletionRate',memberMode?'完成率':'問卷狀態');
+  setMetricLabelV141('dashMissingCount',memberMode?'未填人數':'最近填寫');
+  if($('dashResponseCount'))$('dashResponseCount').textContent=f?responses.length:0;
+  if($('dashExpectedCount'))$('dashExpectedCount').textContent=f?(memberMode?progress.expected.length:questionCount):'—';
+  if($('dashCompletionRate'))$('dashCompletionRate').textContent=f?(memberMode?(rate!==null?rate+'%':'—'):stateLabel(effectiveState(f))):'—';
+  var rateMetric=$('dashCompletionRate')&&$('dashCompletionRate').closest('.metric');
+  if(rateMetric){var bar=rateMetric.querySelector('.metricProgress');if(memberMode&&rate!==null){if(!bar){bar=document.createElement('span');bar.className='metricProgress';bar.innerHTML='<i></i>';rateMetric.appendChild(bar)}bar.querySelector('i').style.width=Math.max(0,Math.min(100,rate))+'%'}else if(bar)bar.remove()}
+  if($('dashMissingCount'))$('dashMissingCount').textContent=f?(memberMode?progress.missing.length:latestResponseTextV141()):'—';
+  if($('dashCurrentNote'))$('dashCurrentNote').textContent='';
+  if($('dashboardCurrent'))$('dashboardCurrent').innerHTML=f?'<div class="currentSurveyCard compactCurrent"><h3>'+esc(f.title)+'</h3><p>狀態：'+esc(stateLabel(effectiveState(f)))+'</p><p>截止時間：'+esc(formatDeadline(f.deadline)||'未設定')+'</p><p>'+(memberMode?'填寫進度：'+progress.filled.length+'/'+progress.expected.length:'填寫份數：'+responses.length)+'</p><p>建立者：'+esc(formCreatorLabel(f))+'</p></div>':emptyState('尚未選擇問卷','請先從右上角選擇問卷，或建立新的問卷。','<button class="btn primary" onclick="showPanel(\'editorPanel\');startNewForm()">建立問卷</button>');
+}
+async function saveForm(){
+  var title=$('formTitle').value.trim();if(!title)return notify('請輸入問卷標題');
+  draftQuestions=normalizeQuestions(draftQuestions);if(!draftQuestions.length)return notify('請至少建立一個題目');
+  var err=formQuestionsValid();if(err)return notify(err);
+  var identityMode=$('identityMode').value,targetDepartments=identityMode==='member'?[].slice.call(document.querySelectorAll('.targetDepartment:checked')).map(function(x){return x.value}):[];
+  if(identityMode==='member'&&!targetDepartments.length)return notify('請至少選擇一個開放填寫部門');
+  var id=editMode==='edit'?editingId:'form_'+Date.now(),data={title:title,description:$('formDescription').value.trim(),deadline:$('formDeadline').value,state:$('formState').value,imageUrl:$('formImageUrl').value.trim(),theme:formTheme({theme:($('formTheme')||{}).value}),identityMode:identityMode,targetDepartments:targetDepartments,questions:draftQuestions,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedByEmail:normalizeEmail((currentUser&&currentUser.email)||''),updatedByName:adminDisplayName()};
+  if(identityMode!=='member'){data.targetMemberIds=firebase.firestore.FieldValue.delete();data.targetMemberMode=firebase.firestore.FieldValue.delete();data.targetMemberUpdatedAt=firebase.firestore.FieldValue.delete();data.targetMemberUpdatedByEmail=firebase.firestore.FieldValue.delete();data.targetMemberUpdatedByName=firebase.firestore.FieldValue.delete()}
+  if(editMode==='new'){data.createdAt=firebase.firestore.FieldValue.serverTimestamp();data.createdByEmail=normalizeEmail((currentUser&&currentUser.email)||'');data.createdByName=adminDisplayName()||(currentUser&&currentUser.displayName)||(currentUser&&currentUser.email)||''}
+  var btn=$('saveFormBtn');btn.disabled=true;btn.textContent='儲存中';setPageLoading(true,'正在儲存問卷');
+  try{await doc('universalForms',id).set(data,{merge:true});formDirty=false;activeFormId=id;await loadAdminData();showPanel('formsPanel');toast(editMode==='edit'?'問卷變更已儲存':'問卷已建立','success')}catch(e){console.error(e);notify('問卷儲存失敗，請確認權限或網路狀態','error')}finally{setPageLoading(false);btn.disabled=false;btn.textContent=editMode==='edit'?'儲存變更':'建立問卷'}
+}
+
 if(typeof window.startUniversalApp==='function')window.startUniversalApp();
 
 
