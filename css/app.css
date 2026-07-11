@@ -3233,3 +3233,82 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
   padding:8px 10px;
   white-space:nowrap;
 }
+
+/* v1.33 刪除確認視窗對齊行政部 */
+.dialogCard{
+  width:min(720px,calc(100vw - 40px));
+  padding:26px 28px 0;
+  border-radius:24px;
+}
+.dialogMessage{
+  margin-top:16px;
+  color:#60718a;
+  font-size:17px;
+  line-height:1.8;
+}
+.deleteImpactBox{
+  margin:22px 0;
+  padding:20px 22px;
+  border:1px solid #fecaca;
+  border-radius:18px;
+  background:#fff7f7;
+  color:#18304f;
+}
+.deleteImpactBox b{
+  display:block;
+  margin:0 0 8px;
+  color:#18304f;
+  font-size:17px;
+}
+.deleteImpactBox ul{
+  margin:0 0 18px 20px;
+  padding:0;
+}
+.deleteImpactBox ul:last-child{
+  margin-bottom:0;
+}
+.deleteImpactBox li{
+  margin:4px 0;
+}
+.deleteConfirmHint{
+  margin:16px 0 8px;
+  color:#18304f;
+  font-weight:900;
+}
+.dialogInputWrap.deleteConfirmInput{
+  margin-top:8px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#18304f;
+}
+.dialogInputWrap.deleteConfirmInput input{
+  min-height:64px;
+  margin-top:8px;
+  padding:16px 18px;
+  border:1px solid #bcd0ef;
+  border-radius:14px;
+  color:#1f2d3d;
+  font-size:18px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+.dialogInputWrap.deleteConfirmInput input:focus{
+  outline:3px solid rgba(59,130,246,.28);
+  border-color:#3b82f6;
+}
+.dialogCard>.modalActions{
+  margin:24px -28px 0;
+  padding:18px 28px 24px;
+  border-top:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:0 0 24px 24px;
+}
+.dialogCard #dialogConfirm.danger{
+  border:1px solid #fecaca;
+  background:#fff1f1;
+  color:#d12d2d;
+}
+.dialogCard #dialogCancel{
+  background:#eef3f8;
+}
