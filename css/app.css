@@ -2675,6 +2675,29 @@ body{
 .adminShell #formsTable td:nth-child(7){
   min-width:250px;
 }
+.adminShell #formsTable .dataTable th{
+  text-align:center;
+  vertical-align:middle;
+}
+.adminShell #formsTable .dataTable td:not(:first-child){
+  text-align:center;
+}
+.adminShell #formsTable .dataTable td:nth-child(7){
+  text-align:left;
+  min-width:300px;
+}
+.adminShell #formsTable .tableActions{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:8px;
+  justify-content:flex-start;
+  white-space:nowrap;
+}
+.adminShell #formsTable .tableActions .btn{
+  min-width:54px;
+  padding:8px 10px;
+  white-space:nowrap;
+}
 .adminShell .tableActions,
 .adminShell .dataTable .buttonRow,
 .adminShell #membersTable .buttonRow{
@@ -3178,4 +3201,35 @@ body[data-front-theme="sakura"] .formHero p,body[data-front-theme="sakura"] .for
   .resultDetailTools .btn{
     width:100%;
   }
+}
+
+/* v1.33 問卷列表操作列修正 */
+.adminShell #formsTable .dataTable th{
+  text-align:center;
+  vertical-align:middle;
+}
+.adminShell #formsTable .dataTable td:not(:first-child){
+  text-align:center;
+}
+.adminShell #formsTable .dataTable td:nth-child(7){
+  text-align:left;
+  min-width:300px;
+}
+.adminShell #formsTable .tableActions,
+.adminShell #formsTable .dataTable .buttonRow{
+  display:flex;
+  grid-template-columns:none;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:flex-start;
+  gap:8px;
+  white-space:nowrap;
+}
+.adminShell #formsTable .tableActions .btn,
+.adminShell #formsTable .dataTable .buttonRow .btn{
+  width:auto;
+  min-width:54px;
+  min-height:38px;
+  padding:8px 10px;
+  white-space:nowrap;
 }
