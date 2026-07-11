@@ -354,6 +354,173 @@
   }
 }
 
+/* v1.40 question direct ordering and per-form member settings */
+.questionEditHeader{
+  gap:12px;
+  flex-wrap:wrap;
+}
+.questionJumpControlV140{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-left:auto;
+  color:#51657f;
+  font-size:13px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.questionJumpControlV140 select{
+  width:auto;
+  min-width:72px;
+  min-height:36px;
+  padding:6px 30px 6px 10px;
+  border-radius:9px;
+  font-size:14px;
+}
+#formMembersPanel .sectionHead{
+  align-items:center;
+}
+.formMemberIntroV140{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin:0 0 18px;
+  padding:18px;
+  border:1px solid #d9e5f2;
+  border-radius:12px;
+  background:#f8fbff;
+}
+.formMemberIntroV140 b{
+  display:block;
+  margin:0 0 6px;
+  color:#07284c;
+  font-size:18px;
+  line-height:1.45;
+}
+.formMemberIntroV140 p{
+  margin:0;
+  color:#63748c;
+  line-height:1.65;
+}
+.formMemberStatsV140{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+  min-width:260px;
+}
+.formMemberStatsV140 span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:#edf5ff;
+  color:#184e8a;
+  font-size:13px;
+  font-weight:900;
+}
+.formMemberToolsV140{
+  display:grid;
+  grid-template-columns:minmax(180px,240px) minmax(220px,1fr) auto auto auto;
+  gap:12px;
+  align-items:end;
+  margin:0 0 16px;
+}
+.formMemberToolsV140 label{
+  display:grid;
+  gap:7px;
+  margin:0;
+  color:#243b5a;
+  font-size:14px;
+  font-weight:900;
+}
+.formMemberToolsV140 input,
+.formMemberToolsV140 select{
+  min-height:46px;
+}
+.memberPickV140{
+  display:inline-grid;
+  place-items:center;
+  position:relative;
+  width:42px;
+  height:38px;
+  cursor:pointer;
+}
+.memberPickV140 input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+.memberPickV140 span{
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  border:1.5px solid #aeb8c7;
+  border-radius:6px;
+  background:#fff;
+  color:transparent;
+  font-size:14px;
+  font-weight:900;
+}
+.memberPickV140 span:before{
+  content:'✓';
+}
+.memberPickV140 input:checked+span{
+  border-color:#397bc7;
+  background:#397bc7;
+  color:#fff;
+}
+.memberPickV140 input:focus-visible+span{
+  outline:3px solid rgba(37,99,235,.2);
+  outline-offset:2px;
+}
+#formMemberTableV140 th,
+#formMemberTableV140 td{
+  text-align:center;
+}
+#formMemberTableV140 th:nth-child(2),
+#formMemberTableV140 td:nth-child(2),
+#formMemberTableV140 th:nth-child(3),
+#formMemberTableV140 td:nth-child(3){
+  text-align:left;
+}
+@media(max-width:1100px){
+  .formMemberToolsV140{
+    grid-template-columns:1fr 1fr;
+  }
+  .formMemberToolsV140 .btn{
+    width:100%;
+  }
+  .formMemberIntroV140{
+    flex-direction:column;
+  }
+  .formMemberStatsV140{
+    justify-content:flex-start;
+    min-width:0;
+  }
+}
+@media(max-width:720px){
+  .questionJumpControlV140{
+    width:100%;
+    margin-left:0;
+    justify-content:flex-start;
+  }
+  .formMemberToolsV140{
+    grid-template-columns:1fr;
+  }
+  .formMemberIntroV140{
+    padding:14px;
+  }
+  .formMemberStatsV140 span{
+    width:100%;
+  }
+}
+
 @media(max-width:900px){
   .adminShell .sidebar{
     position:static;

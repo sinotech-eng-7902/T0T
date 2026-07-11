@@ -220,6 +220,250 @@ creatorDialog=function(f){
     setTimeout(function(){var select=$('creatorEmailSelect');if(select)select.focus()},80);
   });
 };
+/* v1.40: direct question ordering and per-form target member settings. */
+var formMemberSelectionFormIdV140='';
+var formMemberSelectionSetV140=new Set();
+var formMemberFilterStateV140={department:'',search:''};
+function formTargetMemberIdsV140(form){
+  var ids=Array.isArray(form&&form.targetMemberIds)?form.targetMemberIds:(Array.isArray(form&&form.participantMemberIds)?form.participantMemberIds:[]);
+  return ids.map(function(id){return String(id||'')}).filter(Boolean);
+}
+function departmentTargetMembersForFormV140(form){
+  if(!form||form.identityMode!=='member')return[];
+  var allowed=new Set(allowedDepartmentNames(form));
+  return members.filter(function(member){return member.active!==false&&allowed.has(memberDepartmentName(member))});
+}
+function targetMembersForForm(form){
+  var base=departmentTargetMembersForFormV140(form),custom=formTargetMemberIdsV140(form);
+  if(!custom.length)return base;
+  var idSet=new Set(custom);
+  return base.filter(function(member){return idSet.has(String(member.id||''))});
+}
+function completionData(form){
+  var expected=targetMembersForForm(form),filled=expected.filter(function(member){return responses.some(function(response){return responseBelongsToMember(response,member)})}),filledIds=new Set(filled.map(function(member){return member.id})),missing=expected.filter(function(member){return !filledIds.has(member.id)});
+  return{expected:expected,filled:filled,missing:missing};
+}
+function memberAllowedForFormV140(form,member){
+  if(!form||form.identityMode!=='member'||!member)return false;
+  return targetMembersForForm(form).some(function(item){return item.id===member.id});
+}
+function eligibleDepartmentsForFormV140(form){
+  var seen={},out=[];
+  targetMembersForForm(form).forEach(function(member){
+    var dep=memberDepartmentName(member);
+    if(dep&&!seen[dep]){seen[dep]=true;out.push(dep)}
+  });
+  return out.sort(function(a,b){return a.localeCompare(b,'zh-Hant')});
+}
+function renderIdentityBlock(f){
+  var deps=eligibleDepartmentsForFormV140(f);
+  return '<section class="questionCard identityCard"><label class="title">填寫者資料 <span class="required">*</span></label><div class="identityGrid"><label>部門<select id="identityDepartment" required onchange="updateIdentityMembers(this.value)"><option value="">請選擇部門</option>'+deps.map(function(d){return '<option value="'+attr(d)+'">'+esc(d)+'</option>'}).join('')+'</select></label><label>姓名<select id="identityMember" required disabled><option value="">請先選擇部門</option></select></label></div></section>';
+}
+function updateIdentityMembers(department){
+  var select=$('identityMember'),form=activeForm();
+  if(!select)return;
+  var list=targetMembersForForm(form).filter(function(member){return memberDepartmentName(member)===department});
+  select.innerHTML='<option value="">請選擇姓名</option>'+list.map(function(member){return '<option value="'+attr(member.id)+'">'+esc(member.name||'')+(memberEmployeeNo(member)?'（'+esc(memberEmployeeNo(member))+'）':'')+'</option>'}).join('');
+  select.disabled=!department;
+}
+async function submitResponse(event){
+  event.preventDefault();
+  var f=activeForm();
+  if(!f||f.state!=='open'||deadlinePassed(f.deadline))return notify('問卷已關閉，請重新整理頁面');
+  var identity={},note=$('submitNote');
+  if(note){note.textContent='';note.classList.remove('submitError')}
+  if(f.identityMode==='member'){
+    var departmentName=$('identityDepartment')&&$('identityDepartment').value||'',memberId=$('identityMember')&&$('identityMember').value||'',m=members.find(function(x){return x.id===memberId});
+    if(!departmentName||!m)return notify('請選擇您的部門與姓名');
+    if(m.active===false)return notify('這位同仁目前為停用狀態，無法填寫');
+    if(memberDepartmentName(m)!==departmentName)return notify('人員資料與部門不相符，請重新選擇');
+    if(!memberAllowedForFormV140(f,m))return notify('您不在本問卷開放填寫名單內，請洽管理者確認','warn');
+    identity={departmentName:departmentName,memberId:memberId,memberName:m.name||'',employeeNo:memberEmployeeNo(m),respondentMemberId:m.id,respondentEmployeeId:memberEmployeeNo(m),respondentName:m.name||'',respondentDepartment:departmentName};
+  }
+  var answers;
+  try{answers=collectAnswers(event.target,f)}catch(e){return notify(e.message||'請確認填寫內容','warn')}
+  var responseKey=f.identityMode==='member'?f.id+'__'+identity.memberId:'';
+  if(!await confirmDialog('確認送出這份問卷嗎？送出後如需更正，請洽管理員。','確認送出'))return;
+  var btn=$('submitBtn');btn.disabled=true;btn.textContent='送出中';setPageLoading(true,'正在送出問卷');
+  var payload=Object.assign({formId:f.id,formTitle:f.title},identity,{answers:answers,submissionMethod:'self',submittedAt:firebase.firestore.FieldValue.serverTimestamp(),submittedAtText:new Date().toLocaleString('zh-TW')});
+  try{
+    await writeResponseWithLock(f,responseKey,payload,responseKey?{formId:f.id,memberId:identity.memberId,submissionMethod:'self',createdAt:firebase.firestore.FieldValue.serverTimestamp()}:null);
+    frontMain.innerHTML='<div class="successCard submitSuccessCard"><h2>填寫成功</h2><p>已收到您的填寫內容。每位同仁限填一次；如需更正請洽管理員。</p><button class="btn primary" onclick="location.reload()">返回問卷</button></div>';
+    toast('填寫成功','success');
+  }catch(e){
+    console.error(e);
+    var message=e.message==='duplicate-response'||e.code==='permission-denied'?'您已填寫過這份問卷，無法重複送出。如需更正，請洽管理員。':'送出失敗，請檢查網路後再試一次';
+    if(note){note.textContent=message;note.classList.add('submitError')}
+    notify(message,e.message==='duplicate-response'?'warn':'error');
+    btn.disabled=false;btn.textContent='確認並送出';
+  }finally{setPageLoading(false)}
+}
+function questionJumpSelectHtmlV140(index){
+  if(draftQuestions.length<2)return'';
+  return '<label class="questionJumpControlV140">移至第<select onchange="moveQuestionToV140('+index+',Number(this.value)-1)">'+draftQuestions.map(function(_,idx){return '<option value="'+(idx+1)+'" '+(idx===index?'selected':'')+'>'+(idx+1)+'</option>'}).join('')+'</select>題</label>';
+}
+function moveQuestionToV140(from,to){
+  from=Number(from);to=Number(to);
+  if(Number.isNaN(from)||Number.isNaN(to)||from===to||from<0||to<0||from>=draftQuestions.length||to>=draftQuestions.length)return;
+  var item=draftQuestions.splice(from,1)[0];
+  draftQuestions.splice(to,0,item);
+  window.__scrollToQuestionIndex=to;
+  renderQuestionEditor();
+  toast('題目已移至第 '+(to+1)+' 題','success');
+}
+function renderQuestionEditor(){
+  draftQuestions=normalizeQuestions(draftQuestions);
+  var html=draftQuestions.map(function(q,i){
+    return '<div class="questionEdit" data-question-index="'+i+'" draggable="true" ondragstart="onQuestionDragStart(event,'+i+')" ondragover="onQuestionDragOver(event,'+i+')" ondragleave="onQuestionDragLeave(event)" ondrop="onQuestionDrop(event,'+i+')" ondragend="onQuestionDragEnd(event)"><div class="questionEditHeader"><button type="button" class="dragHandle" title="拖曳排序" aria-label="拖曳排序">⋮⋮</button><span class="questionNumber">題目 '+(i+1)+'</span>'+questionJumpSelectHtmlV140(i)+'</div><div class="questionGrid"><label>題目名稱<input value="'+attr(q.title)+'" oninput="updateQuestion('+i+',\'title\',this.value)"></label><label>題型<select onchange="updateQuestion('+i+',\'type\',this.value);renderQuestionEditor()">'+QUESTION_TYPES_V132.map(function(x){return '<option value="'+x[0]+'" '+(q.type===x[0]?'selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label><label>必填<select onchange="updateQuestion('+i+',\'required\',this.value===\'true\')"><option value="false" '+(!q.required?'selected':'')+'>否</option><option value="true" '+(q.required?'selected':'')+'>是</option></select></label></div>'+optionEditorHtml(q,i)+questionImageEditorHtml(q,i)+questionMoreBar(q,i)+questionExtraSettingsHtml(q,i)+'<div class="miniActions"><button class="btn" type="button" onclick="moveQuestion('+i+',-1)">上移</button><button class="btn" type="button" onclick="moveQuestion('+i+',1)">下移</button><button class="btn" type="button" onclick="copyQuestion('+i+')">複製題目</button><button class="btn danger" type="button" onclick="removeQuestion('+i+')">移除</button></div></div>';
+  }).join('');
+  questionEditor.innerHTML=html||'<div class="questionHelp">尚未建立題目，請按「新增題目」。</div>';
+  questionEditor.insertAdjacentHTML('beforeend','<div class="questionAddBottom"><button class="btn primary" type="button" onclick="addQuestion()">＋ 新增題目</button></div>');
+  if(window.__scrollToQuestionIndex!=null){
+    var idx=window.__scrollToQuestionIndex;window.__scrollToQuestionIndex=null;
+    setTimeout(function(){var el=document.querySelector('[data-question-index="'+idx+'"]');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('activeQuestion');var input=el.querySelector('input,textarea,select');if(input)input.focus()}},50);
+  }
+}
+function ensureFormMembersNavV140(){
+  if($('formMembersNav'))return;
+  var menus=[].slice.call(document.querySelectorAll('.topNavMenu'));
+  var menu=menus.find(function(el){return /問卷管理/.test(el.textContent)&&/填寫結果/.test(el.textContent)});
+  if(!menu)return;
+  var before=[].slice.call(menu.querySelectorAll('button')).find(function(btn){return /未填寫名單/.test(btn.textContent)});
+  var html='<button id="formMembersNav" class="nav" onclick="showPanel(\'formMembersPanel\',this);renderFormMembersPanel()">人員設定</button>';
+  if(before)before.insertAdjacentHTML('beforebegin',html);else menu.insertAdjacentHTML('beforeend',html);
+}
+function ensureFormMembersPanelV140(){
+  if($('formMembersPanel'))return;
+  var anchor=$('resultsPanel')||$('permissionsPanel')||$('membersPanel');
+  if(!anchor)return;
+  anchor.insertAdjacentHTML('beforebegin','<section id="formMembersPanel" class="panel"><div class="card"><div class="sectionHead"><div><h2>問卷人員設定</h2><p>針對使用公司人員資料庫的問卷，指定實際應填寫的人員名單。</p></div><button class="btn primary" type="button" onclick="saveFormMemberSettingsV140()">儲存人員設定</button></div><div id="formMembersBody"></div></div></section>');
+}
+function resetFormMemberSelectionIfNeededV140(form){
+  if(!form)return;
+  if(formMemberSelectionFormIdV140===form.id)return;
+  formMemberSelectionFormIdV140=form.id;
+  formMemberFilterStateV140={department:'',search:''};
+  formMemberSelectionSetV140=new Set((formTargetMemberIdsV140(form).length?formTargetMemberIdsV140(form):departmentTargetMembersForFormV140(form).map(function(member){return member.id})).map(String));
+}
+function formMemberFilteredListV140(form){
+  var dep=$('formMemberDepartmentFilter')?$('formMemberDepartmentFilter').value:(formMemberFilterStateV140.department||''),keyword=String($('formMemberSearch')?$('formMemberSearch').value:(formMemberFilterStateV140.search||'')).trim().toLowerCase(),list=departmentTargetMembersForFormV140(form);
+  formMemberFilterStateV140.department=dep;
+  formMemberFilterStateV140.search=keyword;
+  if(dep)list=list.filter(function(member){return memberDepartmentName(member)===dep});
+  if(keyword)list=list.filter(function(member){return [memberDepartmentName(member),member.name,memberEmployeeNo(member),memberGoogleEmail(member)].join(' ').toLowerCase().includes(keyword)});
+  return list.sort(function(a,b){return memberDepartmentName(a).localeCompare(memberDepartmentName(b),'zh-Hant')||memberEmployeeNo(a).localeCompare(memberEmployeeNo(b),'zh-Hant',{numeric:true})||String(a.name||'').localeCompare(String(b.name||''),'zh-Hant')});
+}
+function renderFormMembersPanel(){
+  ensureFormMembersPanelV140();ensureFormMembersNavV140();
+  var body=$('formMembersBody'),form=activeForm();
+  if(!body)return;
+  if(!form){body.innerHTML=emptyState('尚未選擇問卷','請先從右上角選擇要設定人員的問卷。');return}
+  if(form.identityMode!=='member'){body.innerHTML=emptyState('此問卷未使用公司人員資料庫','自由填寫或自行設計填寫者資料的問卷，不需要設定應填人員。');return}
+  if(!canManageForm(form.id)){body.innerHTML=emptyState('沒有管理權限','只有系統管理員、問卷建立者或問卷管理者可以維護人員設定。');return}
+  resetFormMemberSelectionIfNeededV140(form);
+  var all=departmentTargetMembersForFormV140(form),deps=Array.from(new Set(all.map(memberDepartmentName).filter(Boolean))).sort(function(a,b){return a.localeCompare(b,'zh-Hant')}),list=formMemberFilteredListV140(form),data=completionData(form);
+  body.innerHTML='<div class="formMemberIntroV140"><div><b>'+esc(form.title||'未命名問卷')+'</b><p>未另外設定時，系統會依「開放填寫部門」納入所有啟用同仁；儲存後則以此清單作為應填名單。</p></div><div class="formMemberStatsV140"><span>候選 '+all.length+' 人</span><span>已選 '+formMemberSelectionSetV140.size+' 人</span><span>已填 '+data.filled.length+' 人</span></div></div><div class="formMemberToolsV140"><label>部門<select id="formMemberDepartmentFilter" onchange="formMemberFilterStateV140.department=this.value;renderFormMembersTableV140(formMemberFilteredListV140(activeForm()))"><option value="">全部部門</option>'+deps.map(function(dep){return '<option value="'+attr(dep)+'" '+(formMemberFilterStateV140.department===dep?'selected':'')+'>'+esc(dep)+'</option>'}).join('')+'</select></label><label>搜尋<input id="formMemberSearch" type="search" placeholder="姓名、部門、員工編號" value="'+attr(formMemberFilterStateV140.search||'')+'" oninput="formMemberFilterStateV140.search=this.value;renderFormMembersTableV140(formMemberFilteredListV140(activeForm()))"></label><button class="btn" type="button" onclick="selectFilteredFormMembersV140(true)">全選目前篩選</button><button class="btn" type="button" onclick="selectFilteredFormMembersV140(false)">取消目前篩選</button><button class="btn" type="button" onclick="useDepartmentMembersV140()">依部門全部帶入</button></div><div id="formMemberTableV140"></div>';
+  renderFormMembersTableV140(list);
+}
+function renderFormMembersTableV140(list){
+  var target=$('formMemberTableV140');
+  if(!target)return;
+  target.innerHTML=list.length?table(['選取','部門','姓名','員工編號','狀態'],list.map(function(member){
+    var checked=formMemberSelectionSetV140.has(String(member.id||'')),filled=responses.some(function(response){return responseBelongsToMember(response,member)});
+    return '<tr><td><label class="memberPickV140"><input type="checkbox" '+(checked?'checked':'')+' onchange="toggleFormMemberV140(\''+attr(member.id)+'\',this.checked)"><span></span></label></td><td>'+esc(memberDepartmentName(member))+'</td><td><b>'+esc(member.name||'')+'</b></td><td>'+esc(memberEmployeeNo(member))+'</td><td><span class="statePill '+(filled?'state-open':'state-draft')+'">'+(filled?'已填寫':'未填寫')+'</span></td></tr>';
+  }),emptyState('查無人員','請調整部門或搜尋條件。')):emptyState('查無人員','目前開放部門沒有可選擇的啟用人員。');
+}
+function toggleFormMemberV140(id,checked){
+  id=String(id||'');
+  if(!id)return;
+  if(checked)formMemberSelectionSetV140.add(id);else formMemberSelectionSetV140.delete(id);
+  var stat=document.querySelector('.formMemberStatsV140 span:nth-child(2)');
+  if(stat)stat.textContent='已選 '+formMemberSelectionSetV140.size+' 人';
+}
+function selectFilteredFormMembersV140(checked){
+  var form=activeForm();
+  formMemberFilteredListV140(form).forEach(function(member){toggleFormMemberV140(member.id,checked)});
+  renderFormMembersPanel();
+}
+function useDepartmentMembersV140(){
+  var form=activeForm();
+  formMemberSelectionSetV140=new Set(departmentTargetMembersForFormV140(form).map(function(member){return String(member.id||'')}));
+  renderFormMembersPanel();
+  toast('已依開放部門帶入所有啟用同仁','success');
+}
+async function saveFormMemberSettingsV140(){
+  var form=activeForm();
+  if(!form||form.identityMode!=='member')return notify('此問卷未使用公司人員資料庫','warn');
+  if(!canManageForm(form.id))return notify('您沒有維護此問卷人員設定的權限','error');
+  var allowed=new Set(departmentTargetMembersForFormV140(form).map(function(member){return String(member.id||'')})),ids=Array.from(formMemberSelectionSetV140).filter(function(id){return allowed.has(String(id))});
+  if(!ids.length)return notify('請至少選擇一位應填人員','warn');
+  setPageLoading(true,'正在儲存問卷人員設定');
+  try{
+    await doc('universalForms',form.id).set({targetMemberIds:ids,targetMemberMode:'custom',targetMemberUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),targetMemberUpdatedByEmail:normalizeEmail((currentUser&&currentUser.email)||''),targetMemberUpdatedByName:adminDisplayName()}, {merge:true});
+    await loadAdminData();
+    formMemberSelectionFormIdV140='';
+    renderFormMembersPanel();
+    renderDashboard();
+    renderResults();
+    toast('問卷人員設定已儲存','success');
+  }catch(e){console.error(e);notify('人員設定儲存失敗，請確認權限或網路狀態','error')}
+  finally{setPageLoading(false)}
+}
+var ensureAdminExtensionsV140Base=typeof ensureAdminExtensions==='function'?ensureAdminExtensions:null;
+ensureAdminExtensions=function(){
+  if(ensureAdminExtensionsV140Base)ensureAdminExtensionsV140Base();
+  ensureFormMembersPanelV140();
+  ensureFormMembersNavV140();
+};
+var showPanelV140Base=typeof showPanel==='function'?showPanel:null;
+if(showPanelV140Base){
+  showPanel=async function(id,button){
+    ensureFormMembersPanelV140();ensureFormMembersNavV140();
+    await showPanelV140Base(id,button);
+    if(id==='formMembersPanel'){
+      if($('panelTitle'))$('panelTitle').textContent='人員設定';
+      renderFormMembersPanel();
+    }
+  };
+}
+var updateRoleUiV140Base=typeof updateRoleUi==='function'?updateRoleUi:null;
+updateRoleUi=function(){
+  if(updateRoleUiV140Base)updateRoleUiV140Base();
+  var form=activeForm(),show=!!(form&&form.identityMode==='member'&&canManageForm(form.id));
+  if($('formMembersNav'))$('formMembersNav').style.display=show?'':'none';
+  if(!show&&$('formMembersPanel')&&$('formMembersPanel').classList.contains('active'))showPanel('formsPanel');
+};
+var renderAdminV140Base=typeof renderAdmin==='function'?renderAdmin:null;
+if(renderAdminV140Base){
+  renderAdmin=function(){
+    renderAdminV140Base();
+    if($('formMembersPanel')&&$('formMembersPanel').classList.contains('active'))renderFormMembersPanel();
+  };
+}
+var openAssistedFillV140Base=typeof openAssistedFill==='function'?openAssistedFill:null;
+if(openAssistedFillV140Base){
+  openAssistedFill=function(memberId){
+    var form=activeForm(),member=members.find(function(m){return m.id===memberId});
+    if(form&&member&&!memberAllowedForFormV140(form,member))return notify('此同仁不在本問卷應填名單內','warn');
+    openAssistedFillV140Base(memberId);
+  };
+}
+async function duplicateForm(id){
+  var source=forms.find(function(x){return x.id===id});
+  if(!source)return notify('找不到要複製的問卷','error');
+  if(!canManageForm(id))return toast('您沒有複製此問卷的權限','error');
+  var targetIds=formTargetMemberIdsV140(source),newId='form_'+Date.now(),data={title:(source.title||'未命名問卷')+'（複製）',description:source.description||'',deadline:'',state:'draft',imageUrl:source.imageUrl||'',theme:formTheme(source),identityMode:source.identityMode||'member',targetDepartments:[].concat(source.targetDepartments||[]),questions:normalizeQuestions(JSON.parse(JSON.stringify(source.questions||[]))),createdByEmail:normalizeEmail((currentUser&&currentUser.email)||''),createdByName:adminDisplayName()||(currentUser&&currentUser.displayName)||(currentUser&&currentUser.email)||'',createdAt:firebase.firestore.FieldValue.serverTimestamp(),updatedAt:firebase.firestore.FieldValue.serverTimestamp(),updatedByEmail:normalizeEmail((currentUser&&currentUser.email)||''),updatedByName:adminDisplayName()};
+  if(targetIds.length){data.targetMemberIds=targetIds;data.targetMemberMode=source.targetMemberMode||'custom'}
+  setPageLoading(true,'正在複製問卷');
+  try{
+    await doc('universalForms',newId).set(data);
+    activeFormId=newId;
+    await loadAdminData();
+    editForm(newId);
+    toast('已複製問卷，請確認內容後再開放填寫','success');
+  }catch(e){console.error(e);notify('複製問卷失敗，請確認權限或網路狀態','error')}
+  finally{setPageLoading(false)}
+}
 if(typeof window.startUniversalApp==='function')window.startUniversalApp();
 
 
