@@ -629,6 +629,370 @@ function installModalPolishV143(){
 installQuestionEditorV143();
 installModalPolishV143();
 
+/* v1.44: question operation dirty tracking, active question by id, safer drag and modal close guards. */
+var activeQuestionIdV144=null;
+var dragQuestionIdV144=null;
+var assistedFormDirtyV144=false;
+var responseEditDirtyV144=false;
+var modalBusyV144=false;
+var modalProgrammaticCloseV144=false;
+var lastModalTriggerV144=null;
+function markFormDirty(){
+  formDirty=true;
+}
+function questionIdAtV144(index){
+  var q=draftQuestions[Number(index)];
+  return q&&q.id?String(q.id):'';
+}
+function questionIndexByIdV144(id){
+  id=String(id||'');
+  return draftQuestions.findIndex(function(q){return String(q&&q.id||'')===id});
+}
+function focusQuestionByIdV144(id,focusSelector){
+  id=String(id||'');
+  var index=questionIndexByIdV144(id);
+  if(index<0)return;
+  window.__scrollToQuestionIndex=index;
+  activeQuestionIdV144=id;
+  setTimeout(function(){
+    var card=document.querySelector('[data-question-id="'+CSS.escape(id)+'"]')||document.querySelector('[data-question-index="'+index+'"]');
+    if(!card)return;
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+    setActiveQuestionByIdV144(id);
+    var target=focusSelector?card.querySelector(focusSelector):card.querySelector('input,textarea,select,button');
+    if(target&&typeof target.focus==='function')target.focus({preventScroll:true});
+  },60);
+}
+function setActiveQuestionByIdV144(id){
+  activeQuestionIdV144=String(id||'');
+  document.querySelectorAll('#questionEditor .questionEdit').forEach(function(card){
+    var isActive=card.getAttribute('data-question-id')===activeQuestionIdV144;
+    card.classList.toggle('isEditingV143',isActive);
+    card.classList.toggle('isEditingV144',isActive);
+    var chip=card.querySelector('.editingChipV143');
+    if(chip)chip.hidden=!isActive;
+  });
+}
+function markQuestionDirtyAndActiveV144(index){
+  markFormDirty();
+  var id=questionIdAtV144(index);
+  if(id)activeQuestionIdV144=id;
+}
+function cleanQuestionForTypeV144(q){
+  q=normalizeQuestion(q);
+  if(!['single','multiple','dropdown'].includes(q.type))delete q.options;
+  if(!MATRIX_TYPES_V132.includes(q.type)){delete q.rows;delete q.columns}
+  if(!['linearScale','rating'].includes(q.type)&&q.settings)q.settings={};
+  if(q.type==='linearScale')q.settings=Object.assign({min:1,max:5,minLabel:'非常不滿意',maxLabel:'非常滿意'},q.settings||{});
+  if(q.type==='rating')q.settings=Object.assign({max:5,minLabel:'',maxLabel:''},q.settings||{});
+  return q;
+}
+var updateQuestionV144Base=typeof updateQuestion==='function'?updateQuestion:null;
+if(updateQuestionV144Base){
+  updateQuestion=function(i,key,value){
+    var oldId=questionIdAtV144(i);
+    updateQuestionV144Base(i,key,value);
+    if(key==='type')draftQuestions[i]=cleanQuestionForTypeV144(draftQuestions[i]);
+    markQuestionDirtyAndActiveV144(i);
+    if(key==='type')setTimeout(function(){focusQuestionByIdV144(oldId,'select,textarea,input')},30);
+  };
+}
+['setQuestionSettings','setQuestionValidation','updateQuestionImage'].forEach(function(name){
+  var base=window[name]||eval('typeof '+name+'==="function"?'+name+':null');
+  if(!base)return;
+  window[name]=function(i,key,value){
+    var result=base.apply(this,arguments);
+    markQuestionDirtyAndActiveV144(i);
+    return result;
+  };
+  try{eval(name+'=window[name]')}catch(e){}
+});
+var applyOptionsFromTextareaV144Base=typeof applyOptionsFromTextarea==='function'?applyOptionsFromTextarea:null;
+if(applyOptionsFromTextareaV144Base){
+  applyOptionsFromTextarea=function(i,target){
+    var id=questionIdAtV144(i);
+    var result=applyOptionsFromTextareaV144Base(i,target);
+    markQuestionDirtyAndActiveV144(questionIndexByIdV144(id));
+    focusQuestionByIdV144(id);
+    return result;
+  };
+}
+var applyBulkOptionsV144Base=typeof applyBulkOptions==='function'?applyBulkOptions:null;
+if(applyBulkOptionsV144Base){
+  applyBulkOptions=function(i,target){
+    var id=questionIdAtV144(i);
+    var result=applyBulkOptionsV144Base(i,target);
+    markQuestionDirtyAndActiveV144(questionIndexByIdV144(id));
+    focusQuestionByIdV144(id);
+    return result;
+  };
+}
+var addQuestionV144Base=typeof addQuestion==='function'?addQuestion:null;
+if(addQuestionV144Base){
+  addQuestion=function(type){
+    addQuestionV144Base(type);
+    var q=draftQuestions[draftQuestions.length-1];
+    activeQuestionIdV144=q&&q.id?String(q.id):activeQuestionIdV144;
+    markFormDirty();
+  };
+}
+var copyQuestionV144Base=typeof copyQuestion==='function'?copyQuestion:null;
+if(copyQuestionV144Base){
+  copyQuestion=function(i){
+    copyQuestionV144Base(i);
+    var copied=draftQuestions[Number(i)+1];
+    activeQuestionIdV144=copied&&copied.id?String(copied.id):activeQuestionIdV144;
+    markFormDirty();
+    focusQuestionByIdV144(activeQuestionIdV144);
+  };
+}
+var moveQuestionV144Base=typeof moveQuestion==='function'?moveQuestion:null;
+if(moveQuestionV144Base){
+  moveQuestion=function(i,delta){
+    var id=questionIdAtV144(i);
+    moveQuestionV144Base(i,delta);
+    if(questionIndexByIdV144(id)>=0){
+      activeQuestionIdV144=id;
+      markFormDirty();
+      focusQuestionByIdV144(id);
+    }
+  };
+}
+var removeQuestionV144Base=typeof removeQuestion==='function'?removeQuestion:null;
+if(removeQuestionV144Base){
+  removeQuestion=async function(i){
+    i=Number(i);
+    var oldId=questionIdAtV144(i);
+    var ok=await confirmDialog('確定移除此題？','移除題目',true);
+    if(!ok)return;
+    draftQuestions.splice(i,1);
+    var next=draftQuestions[i]||draftQuestions[i-1]||null;
+    activeQuestionIdV144=next&&next.id?String(next.id):'';
+    markFormDirty();
+    renderQuestionEditor();
+    if(activeQuestionIdV144)focusQuestionByIdV144(activeQuestionIdV144);
+  };
+}
+var moveQuestionToV140V144Base=typeof moveQuestionToV140==='function'?moveQuestionToV140:null;
+if(moveQuestionToV140V144Base){
+  moveQuestionToV140=function(from,to){
+    var id=questionIdAtV144(from);
+    moveQuestionToV140V144Base(from,to);
+    if(questionIndexByIdV144(id)>=0){
+      activeQuestionIdV144=id;
+      markFormDirty();
+      focusQuestionByIdV144(id);
+    }
+  };
+}
+var addQuestionAfterV143V144Base=typeof addQuestionAfterV143==='function'?addQuestionAfterV143:null;
+if(addQuestionAfterV143V144Base){
+  addQuestionAfterV143=function(index,type){
+    index=Number(index);
+    if(Number.isNaN(index)||index<0||index>=draftQuestions.length)return addQuestion(type||'short');
+    var q=newQuestion(type||'short');
+    draftQuestions.splice(index+1,0,q);
+    activeQuestionIdV144=String(q.id||'');
+    window.__scrollToQuestionIndex=index+1;
+    markFormDirty();
+    renderQuestionEditor();
+    focusQuestionByIdV144(activeQuestionIdV144);
+    toast('已在第 '+(index+1)+' 題下方新增題目','success');
+  };
+}
+onQuestionDragStart=function(event,i){
+  if(!event.target.closest('.dragHandle')){event.preventDefault();return false}
+  if(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches){event.preventDefault();return false}
+  dragQuestionIndex=i;
+  dragQuestionIdV144=questionIdAtV144(i);
+  event.currentTarget.classList.add('dragging');
+  event.dataTransfer.effectAllowed='move';
+  event.dataTransfer.setData('text/plain',dragQuestionIdV144||String(i));
+};
+onQuestionDrop=function(event,i){
+  event.preventDefault();
+  event.currentTarget.classList.remove('dragOver');
+  var from=dragQuestionIdV144?questionIndexByIdV144(dragQuestionIdV144):dragQuestionIndex;
+  if(from==null||from<0||from===i)return;
+  var item=draftQuestions.splice(from,1)[0];
+  draftQuestions.splice(i,0,item);
+  activeQuestionIdV144=String(item.id||'');
+  window.__scrollToQuestionIndex=questionIndexByIdV144(activeQuestionIdV144);
+  dragQuestionIndex=null;
+  dragQuestionIdV144=null;
+  markFormDirty();
+  renderQuestionEditor();
+  focusQuestionByIdV144(activeQuestionIdV144);
+  toast('題目順序已更新','success');
+};
+var renderQuestionEditorV144Base=typeof renderQuestionEditor==='function'?renderQuestionEditor:null;
+if(renderQuestionEditorV144Base){
+  renderQuestionEditor=function(){
+    renderQuestionEditorV144Base();
+    document.querySelectorAll('#questionEditor .questionEdit').forEach(function(card){
+      var index=Number(card.getAttribute('data-question-index'));
+      var id=questionIdAtV144(index);
+      if(id)card.setAttribute('data-question-id',id);
+      card.setAttribute('draggable','false');
+      var handle=card.querySelector('.dragHandle');
+      if(handle){
+        handle.setAttribute('draggable',window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'false':'true');
+        handle.addEventListener('pointerdown',function(){if(id)setActiveQuestionByIdV144(id)});
+      }
+      card.addEventListener('focusin',function(){if(id)setActiveQuestionByIdV144(id)});
+      card.addEventListener('pointerdown',function(event){
+        if(event.target.closest('input,textarea,select,button'))return;
+        if(id)setActiveQuestionByIdV144(id);
+      });
+    });
+    if(activeQuestionIdV144&&questionIndexByIdV144(activeQuestionIdV144)>=0)setActiveQuestionByIdV144(activeQuestionIdV144);
+  };
+}
+var startNewFormV144Base=typeof startNewForm==='function'?startNewForm:null;
+if(startNewFormV144Base){
+  startNewForm=function(){
+    activeQuestionIdV144='';
+    startNewFormV144Base();
+  };
+}
+var editFormV144Base=typeof editForm==='function'?editForm:null;
+if(editFormV144Base){
+  editForm=function(id){
+    activeQuestionIdV144='';
+    editFormV144Base(id);
+  };
+}
+function submissionMethodLabelV144(r,form){
+  if(r&&r.submissionMethod==='assisted')return '管理員協助填寫';
+  return form&&formUsesMemberDatabaseV141(form)?'本人填寫':'一般填寫';
+}
+var responseDetailRowV144Base=typeof responseDetailRow==='function'?responseDetailRow:null;
+if(responseDetailRowV144Base){
+  responseDetailRow=function(f,qs,r,manage){
+    var html=responseDetailRowV144Base(f,qs,r,manage);
+    if(!formUsesMemberDatabaseV141(f))html=html.replace(/本人填寫/g,'一般填寫');
+    return html;
+  };
+}
+var resultExportRowV141V144Base=typeof resultExportRowV141==='function'?resultExportRowV141:null;
+if(resultExportRowV141V144Base){
+  resultExportRowV141=function(f,qs,r){
+    var row=resultExportRowV141V144Base(f,qs,r);
+    row['填寫方式']=submissionMethodLabelV144(r,f);
+    return row;
+  };
+}
+var submitResponseV144Base=typeof submitResponse==='function'?submitResponse:null;
+if(submitResponseV144Base){
+  submitResponse=async function(event){
+    var f=activeForm();
+    if(f&&f.identityMode!=='member'){
+      var oldConfirm=confirmDialog;
+      confirmDialog=function(message,title,danger){
+        return oldConfirm('確認送出這份問卷嗎？',title,danger);
+      };
+      try{
+        await submitResponseV144Base(event);
+        var card=document.querySelector('.submitSuccessCard p');
+        if(card)card.textContent='已收到您的填寫內容，感謝您的填寫。';
+      }finally{
+        confirmDialog=oldConfirm;
+      }
+    }else{
+      await submitResponseV144Base(event);
+    }
+  };
+}
+function markAssistDirtyV144(){
+  assistedFormDirtyV144=true;
+}
+function markResponseEditDirtyV144(){
+  responseEditDirtyV144=true;
+}
+var openAssistedFillV144Base=typeof openAssistedFill==='function'?openAssistedFill:null;
+if(openAssistedFillV144Base){
+  openAssistedFill=function(memberId){
+    lastModalTriggerV144=document.activeElement;
+    assistedFormDirtyV144=false;
+    openAssistedFillV144Base(memberId);
+    var form=document.getElementById('assistedForm');
+    if(form){
+      form.addEventListener('input',markAssistDirtyV144);
+      form.addEventListener('change',markAssistDirtyV144);
+    }
+  };
+}
+var closeAssistedFillV144Base=typeof closeAssistedFill==='function'?closeAssistedFill:null;
+if(closeAssistedFillV144Base){
+  closeAssistedFill=async function(force){
+    if(modalBusyV144&&!modalProgrammaticCloseV144)return;
+    if(!modalProgrammaticCloseV144&&!force&&assistedFormDirtyV144&&!await confirmDialog('內容尚未儲存，確定關閉嗎？','尚未儲存'))return;
+    assistedFormDirtyV144=false;
+    closeAssistedFillV144Base();
+    if(lastModalTriggerV144&&lastModalTriggerV144.focus)lastModalTriggerV144.focus();
+  };
+}
+var submitAssistedResponseV144Base=typeof submitAssistedResponse==='function'?submitAssistedResponse:null;
+if(submitAssistedResponseV144Base){
+  submitAssistedResponse=async function(event){
+    modalBusyV144=true;
+    modalProgrammaticCloseV144=true;
+    try{await submitAssistedResponseV144Base(event);assistedFormDirtyV144=false}
+    finally{modalProgrammaticCloseV144=false;modalBusyV144=false}
+  };
+}
+var openResponseEditorV144Base=typeof openResponseEditor==='function'?openResponseEditor:null;
+if(openResponseEditorV144Base){
+  openResponseEditor=function(id){
+    lastModalTriggerV144=document.activeElement;
+    responseEditDirtyV144=false;
+    openResponseEditorV144Base(id);
+    var form=document.getElementById('responseEditForm');
+    if(form){
+      form.addEventListener('input',markResponseEditDirtyV144);
+      form.addEventListener('change',markResponseEditDirtyV144);
+    }
+  };
+}
+var closeResponseEditorV144Base=typeof closeResponseEditor==='function'?closeResponseEditor:null;
+if(closeResponseEditorV144Base){
+  closeResponseEditor=async function(force){
+    if(modalBusyV144&&!modalProgrammaticCloseV144)return;
+    if(!modalProgrammaticCloseV144&&!force&&responseEditDirtyV144&&!await confirmDialog('內容尚未儲存，確定關閉嗎？','尚未儲存'))return;
+    responseEditDirtyV144=false;
+    closeResponseEditorV144Base();
+    if(lastModalTriggerV144&&lastModalTriggerV144.focus)lastModalTriggerV144.focus();
+  };
+}
+var saveEditedResponseV144Base=typeof saveEditedResponse==='function'?saveEditedResponse:null;
+if(saveEditedResponseV144Base){
+  saveEditedResponse=async function(event){
+    modalBusyV144=true;
+    modalProgrammaticCloseV144=true;
+    try{await saveEditedResponseV144Base(event);responseEditDirtyV144=false}
+    finally{modalProgrammaticCloseV144=false;modalBusyV144=false}
+  };
+}
+function topOpenModalV144(){
+  var selectors=['.deleteFormModalV136','#creatorDialogMask','#dialogMask','#responseEditMask','#assistedFillMask'];
+  for(var i=0;i<selectors.length;i++){
+    var el=document.querySelector(selectors[i]);
+    if(el&&getComputedStyle(el).display!=='none')return el;
+  }
+  return null;
+}
+document.addEventListener('keydown',async function(event){
+  if(event.key!=='Escape')return;
+  var modal=topOpenModalV144();
+  if(!modal||modalBusyV144)return;
+  event.preventDefault();
+  if(modal.classList.contains('deleteFormModalV136'))return;
+  if(modal.id==='dialogMask')return closeDialog(false);
+  if(modal.id==='creatorDialogMask'&&typeof closeCreatorDialog==='function')return closeCreatorDialog('');
+  if(modal.id==='assistedFillMask')return closeAssistedFill(false);
+  if(modal.id==='responseEditMask')return closeResponseEditor(false);
+});
+
 if(typeof window.startUniversalApp==='function')window.startUniversalApp();
 
 

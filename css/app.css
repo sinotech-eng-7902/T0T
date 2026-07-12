@@ -3941,10 +3941,27 @@ body>.modalMask[style*="display: grid"]{
 @media(max-width:760px){
   .questionEdit .miniActions{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr;
+    gap:10px;
   }
   .questionEdit .miniActions .btn{
     width:100%;
+  }
+  .questionEditHeader{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    align-items:center;
+  }
+  .questionJumpControlV140{
+    grid-column:1 / -1;
+    width:100%;
+  }
+  .editingChipV143{
+    margin-left:0;
+    justify-self:start;
+  }
+  .dragHandle{
+    display:none;
   }
   .adminShell .modalMask[style*="display: grid"],
   body>.modalMask[style*="display: grid"]{
