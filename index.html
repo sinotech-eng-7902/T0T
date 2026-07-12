@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.44</title>
+  <title>公司通用問卷調查系統 v1.45</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=1.44">
+  <link rel="stylesheet" href="css/app.css?v=1.45">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -71,12 +71,12 @@
       <section id="dashboardPanel" class="panel active">
         <div class="summaryGrid dashboardMetrics"><div class="metric"><span>填寫份數</span><b id="dashResponseCount">0</b></div><div class="metric"><span>應填人數</span><b id="dashExpectedCount">—</b></div><div class="metric"><span>完成率</span><b id="dashCompletionRate">—</b></div><div class="metric"><span>未填人數</span><b id="dashMissingCount">—</b></div></div>
         <div class="dashboardGrid">
-          <div class="card dashboardCurrentCard"><div class="sectionHead"><div><h2>目前問卷</h2><p id="dashCurrentNote">請先選擇問卷。</p></div></div><div id="dashboardCurrent"></div><div class="buttonRow dashboardActions"><button class="btn primary" onclick="showPanel('editorPanel');startNewForm()">建立或編輯問卷</button><button class="btn success" onclick="showPanel('resultsPanel')">查看填寫結果</button></div></div>
+          <div class="card dashboardCurrentCard"><div class="sectionHead"><div><h2>目前問卷</h2><p id="dashCurrentNote">請先選擇問卷。</p></div></div><div id="dashboardCurrent"></div><div class="buttonRow dashboardActions"><button class="btn primary" onclick="openNewFormSafely()">建立或編輯問卷</button><button class="btn success" onclick="showPanel('resultsPanel')">查看填寫結果</button></div></div>
         </div>
       </section>
 
       <section id="formsPanel" class="panel">
-        <div class="card manageIntro"><div><h2>問卷管理</h2><p>問卷依權限分為「我建立的問卷」與「被分享的問卷」；自己建立的問卷可管理內容與結果，被分享的問卷依授權角色管理或檢視。</p></div><button class="btn primary" onclick="showPanel('editorPanel');startNewForm()">＋ 新增問卷</button></div>
+        <div class="card manageIntro"><div><h2>問卷管理</h2><p>問卷依權限分為「我建立的問卷」與「被分享的問卷」；自己建立的問卷可管理內容與結果，被分享的問卷依授權角色管理或檢視。</p></div><button class="btn primary" onclick="openNewFormSafely()">＋ 新增問卷</button></div>
         <div class="card"><div class="sectionHead"><div><h2>問卷列表</h2><p>目前使用中、已關閉與系統內問卷可分開管理。</p></div><div class="buttonRow"><button class="btn" onclick="createUniformTemplate()">建立外套尺寸範本</button></div></div><div id="formsTable"></div></div>
       </section>
 
@@ -126,9 +126,8 @@
     </div>
   </div>
   <div id="pageLoading" class="pageLoading" hidden><div>處理中…</div></div>
-  <script src="js/config.js?v=1.44"></script>
-  <script src="js/app.js?v=1.44"></script>
-  <script src="js/v132.js?v=1.44"></script>
+  <script src="js/config.js?v=1.45"></script>
+  <script src="js/app.js?v=1.45"></script>
 </body>
 </html>
 
