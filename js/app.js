@@ -243,14 +243,14 @@ function creatorCellHtml(f){let label=esc(formCreatorLabel(f));if(!isSystemAdmin
 function percentage(count,total){return total?Math.round(count*1000/total)/10:0}
 async function saveMember(){let department=$('memberDepartment').value,name=$('memberName').value.trim(),employeeNo=$('memberEmployeeNo').value.trim(),googleEmail=normalizeEmail($('memberGoogleEmail')?.value||'');if(!department||!name||!employeeNo)return notify('請完整填寫部門、姓名與員工編號');if(googleEmail&&!/^\S+@\S+\.\S+$/.test(googleEmail))return notify('請輸入有效的 Google 帳號');let duplicate=members.find(m=>String(m.employeeNo||m.empNo||'').trim()===employeeNo&&m.id!==editingMemberId);if(duplicate)return notify(`員工編號 ${employeeNo} 已由 ${duplicate.name||'其他人員'} 使用`);let duplicateGoogle=members.find(m=>memberGoogleEmail(m)===googleEmail&&m.id!==editingMemberId);if(googleEmail&&duplicateGoogle)return notify(`Google 帳號已由 ${duplicateGoogle.name||'其他人員'} 使用`);let data={department,name,employeeNo,active:$('memberActive').value==='true',updatedAt:firebase.firestore.FieldValue.serverTimestamp()},btn=$('saveMemberBtn');btn.disabled=true;btn.textContent='儲存中…';setPageLoading(true,'正在儲存人員資料…');try{let memberId=editingMemberId;if(memberEditMode==='new'){data.createdAt=firebase.firestore.FieldValue.serverTimestamp();memberId=(await col('members').add(data)).id}else await doc('members',memberId).set(data,{merge:true});if(googleEmail)await doc('memberAccounts',memberId).set({memberId,email:googleEmail,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});else{let account=await doc('memberAccounts',memberId).get();if(account.exists)await doc('memberAccounts',memberId).delete()}let wasNew=memberEditMode==='new';cancelMemberEdit();await loadAdminData();showPanel('membersPanel');toast(wasNew?'人員已新增，兩套系統將同步使用':'人員資料已更新','success')}catch(e){console.error(e);notify('人員資料儲存失敗，請確認權限或網路狀態','error')}finally{setPageLoading(false);btn.disabled=false;btn.textContent=memberEditMode==='edit'?'儲存變更':'新增人員'}}
 async function toggleMember(id,active){let m=members.find(x=>x.id===id);if(!m)return;if(!active&&!await confirmDialog(`確定停用 ${m.name||'這位人員'}？停用後兩套調查系統的前台都不會顯示。`,'停用人員',true))return;setPageLoading(true,'正在更新人員狀態…');try{await doc('members',id).set({active,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});await loadAdminData();showPanel('membersPanel');toast(active?'人員已啟用':'人員已停用','success')}catch(e){console.error(e);notify('人員狀態更新失敗','error')}finally{setPageLoading(false)}}
-async function loadPublicData(){let[fs,ds,ms]=await Promise.all([col('universalForms').get(),col('departments').get(),col('members').get()]);forms=fs.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));departments=ds.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>(a.sortOrder??999)-(b.sortOrder??999));let depOrder=new Map(departments.map((d,i)=>[d.name||d.departmentName||d.department||'',i]));members=ms.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>{let ad=a.department||a.departmentName||'',bd=b.department||b.departmentName||'',diff=(depOrder.get(ad)??9999)-(depOrder.get(bd)??9999);if(diff)return diff;return String(a.employeeNo||a.empNo||'').localeCompare(String(b.employeeNo||b.empNo||''),'zh-Hant',{numeric:true})||String(a.name||'').localeCompare(String(b.name||''),'zh-Hant')});let publicForms=forms.filter(f=>f.deleted!==true),route=formRouteId(),adminId=adminRouteId(),allowed=isAdmin?accessibleForms():[];if(adminId&&allowed.some(f=>f.id===adminId))activeFormId=adminId;else if(route&&publicForms.some(f=>f.id===route))activeFormId=route;else if(isAdmin&&allowed.length&&!allowed.some(f=>f.id===activeFormId))activeFormId=allowed[0].id;else if(!isAdmin&&!publicForms.some(f=>f.id===activeFormId))activeFormId=(publicForms.find(f=>f.state==='open')||publicForms[0])?.id||''}
+async function loadPublicData(){let[fs,ds,ms]=await Promise.all([col('universalForms').get(),col('departments').get(),col('members').get()]);forms=fs.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));departments=ds.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>(a.sortOrder??999)-(b.sortOrder??999));let depOrder=new Map(departments.map((d,i)=>[d.name||d.departmentName||d.department||'',i]));members=ms.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>{let ad=a.department||a.departmentName||'',bd=b.department||b.departmentName||'',diff=(depOrder.get(ad)??9999)-(depOrder.get(bd)??9999);if(diff)return diff;return String(a.employeeNo||a.empNo||'').localeCompare(String(b.employeeNo||b.empNo||''),'zh-Hant',{numeric:true})||String(a.name||'').localeCompare(String(b.name||''),'zh-Hant')});let publicForms=forms.filter(f=>f.deleted!==true),route=formRouteId(),adminId=adminRouteId(),allowed=isAdmin?accessibleForms():[];if(adminId&&allowed.some(f=>f.id===adminId))activeFormId=adminId;else if(route&&publicForms.some(f=>f.id===route))activeFormId=route;else if(isAdmin&&allowed.length&&!allowed.some(f=>f.id===activeFormId))activeFormId=allowed[0].id;else if(!isAdmin)activeFormId=''}
 async function loadAdminData(){await loadPublicData();await loadMemberAccounts();if(isSystemAdmin&&!submissionLocksPrepared)await prepareSubmissionLocks();await loadResponses();renderAdmin()}
 async function refreshAdminView(){let btn=$('refreshAdminBtn');if(btn)btn.disabled=true;setPageLoading(true,'正在重新整理資料…');try{await loadAdminData();toast('資料已重新整理','success')}catch(e){console.error(e);notify('重新整理失敗，請稍後再試','error')}finally{setPageLoading(false);if(btn)btn.disabled=false}}
 async function loadResponses(){if(!isAdmin||!activeFormId||!canViewForm(activeFormId)){responses=[];return}try{let q=await col('universalResponses').where('formId','==',activeFormId).get();responses=q.docs.map(x=>({id:x.id,...x.data()})).sort((a,b)=>(b.submittedAt?.seconds||0)-(a.submittedAt?.seconds||0))}catch(e){console.warn(e);responses=[]}}
 function applyRoute(){let wantsAdmin=location.hash==='#admin'||location.hash.startsWith('#admin/');if(wantsAdmin&&isAdmin){front.style.display='none';admin.style.display='block';loginMask.style.display='none';let routeId=adminRouteId();if(routeId&&canViewForm(routeId)&&routeId!==activeFormId){activeFormId=routeId;loadResponses().then(renderAdmin);return}renderAdmin();return}admin.style.display='none';front.style.display='block';loginMask.style.display=wantsAdmin&&!isAdmin?'grid':'none';renderFront();if(loginPurpose==='response'&&currentUser)setTimeout(showMyResponse,0)}
 function myResponseButton(f){return f?.identityMode==='member'?'<button class="ghostBtn" type="button" onclick="startMyResponseView()">查看我的填寫結果</button>':''}
 function frontPreviewBannerHtml(){if(!isAdmin)return'';let label=adminDisplayName()||currentUser?.email||'管理員';return `<div class="frontPreviewBanner"><div><b>管理員預覽模式</b><span>${esc(label)}</span></div><div class="frontPreviewActions"><button class="btn primary" type="button" onclick="openAdmin()">返回管理後台</button><button class="btn" type="button" onclick="logout()">登出</button></div></div>`}
-function frontTopHtml(f,closed){return `<header class="frontHeader"><img src="assets/company-logo.png" alt="環興科技股份有限公司"><div class="frontActions"><span id="formStatus" class="statusPill">${closed?'問卷已關閉':'問卷開放中'}</span>${myResponseButton(f)}${isAdmin?'':'<button class="ghostBtn" onclick="openAdmin()">管理登入</button>'}</div></header>`}
+function frontTopHtml(f,closed){let statusLabel=f?(closed?'問卷已關閉':'問卷開放中'):'請使用完整網址';return `<header class="frontHeader"><img src="assets/company-logo.png" alt="環興科技股份有限公司"><div class="frontActions"><span id="formStatus" class="statusPill">${statusLabel}</span>${myResponseButton(f)}${isAdmin?'':'<button class="ghostBtn" onclick="openAdmin()">管理登入</button>'}</div></header>`}
 
 async function startMyResponseView(){loginPurpose='response';loginMsg.textContent='';if(!currentUser){loginMask.style.display='grid';return}await loadMemberAccounts();await showMyResponse()}
 async function showMyResponse(){let box=$('myResponseBox'),f=activeForm();if(!box||!f)return;let member=findMemberByGoogleEmail(currentUser?.email||'');if(!member){box.innerHTML='<div class="notice myResponseCard">找不到此 Google 帳號對應的人員資料，請確認是否使用公司行事曆同一組帳號。</div>';return}box.innerHTML='<div class="notice myResponseCard">正在讀取您的填寫內容…</div>';try{let snap=await doc('universalResponses',`${f.id}__${member.id}`).get();if(!snap.exists){box.innerHTML='<div class="notice myResponseCard">目前查無您的填寫紀錄。</div>';return}let r={id:snap.id,...snap.data()},questions=(f.questions||[]).filter(q=>q.type!=='image'),answers=questions.map(q=>`<div class="myAnswerItem"><b>${esc(q.title||'未命名題目')}</b><p>${esc(answerText(q,r)||'未填')}</p></div>`).join('');box.innerHTML=`<section class="notice myResponseCard"><h2>我的填寫結果</h2><p class="myResponseMeta"><span>${esc(r.departmentName||member.department||'')}</span><span>${esc(r.memberName||member.name||'')}</span><span>${esc(r.employeeNo||member.employeeNo||member.empNo||'')}</span><span>${esc(r.submittedAtText||'')}</span></p><div class="myAnswerList">${answers||'<div class="myAnswerItem"><p>此問卷沒有可顯示的題目。</p></div>'}</div></section>`}catch(e){console.error(e);box.innerHTML='<div class="notice myResponseCard">讀取失敗，請確認 Firestore 規則已部署 v1.27 完整合併版。</div>'}}
@@ -397,8 +397,8 @@ function renderTrash(){return}
 var resultDetailState={search:'',department:'',sort:'department'};
 function cleanUiText(value){return String(value==null?'':value).replace(/\\r\\n|\\r|\\n|r'n/g,' ').replace(/\s{2,}/g,' ').trim()}
 function esc(v){return cleanUiText(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-function frontTopHtml(f,closed){return '<header class="frontHeader"><img src="assets/company-logo.png" alt="環興科技股份有限公司"><div class="frontActions"><span id="formStatus" class="statusPill">'+(closed?'問卷已關閉':'問卷開放中')+'</span>'+(isAdmin?'':'<button class="ghostBtn" onclick="openAdmin()">管理登入</button>')+'</div></header>'}
-function renderFront(){var publicForms=forms.filter(function(x){return x.deleted!==true}),f=publicForms.find(function(x){return x.id===(formRouteId()||activeFormId)})||publicForms.find(function(x){return x.state==='open'})||publicForms[0];if(!f){document.body.removeAttribute('data-front-theme');formStatus.textContent='尚無問卷';frontMain.innerHTML=frontPreviewBannerHtml()+frontTopHtml(null,true)+'<div class="successCard"><h2>目前尚無可填寫問卷</h2><p>請洽管理者建立問卷。</p></div>';return}activeFormId=f.id;applyFormTheme(f);var closed=f.state!=='open'||deadlinePassed(f.deadline),heroImage=imageUrl(f.imageUrl),description=String(f.description||'').trim();formStatus.textContent=closed?'問卷已關閉':'問卷開放中';frontMain.innerHTML=frontPreviewBannerHtml()+frontTopHtml(f,closed)+'<section class="formHero"><h1>'+esc(f.title)+'</h1>'+(description?'<p>'+esc(description)+'</p>':'')+(f.deadline?'<span class="deadlineBadge">請於 '+esc(formatDeadline(f.deadline))+' 前完成</span>':'')+(heroImage?'<img class="referenceImage" src="'+attr(heroImage)+'" alt="問卷參考圖片">':'')+'</section>'+(closed?'<div class="successCard" style="margin-top:18px"><h2>本問卷目前未開放填寫</h2></div>':'<form id="publicForm" class="questionList frontFormStack" onsubmit="submitResponse(event)"><div class="frontFormHeading"><h2>填寫問卷</h2></div>'+(f.identityMode==='member'?renderIdentityBlock(f):'')+normalizeQuestions(f.questions||[]).map(function(q){return renderPublicQuestion(q)}).join('')+'<div class="submitArea"><button id="submitBtn" class="btn primary" type="submit">確認並送出</button><span id="submitNote" class="questionHelp"></span></div></form>')}
+function frontTopHtml(f,closed){var statusLabel=f?(closed?'問卷已關閉':'問卷開放中'):'請使用完整網址';return '<header class="frontHeader"><img src="assets/company-logo.png" alt="環興科技股份有限公司"><div class="frontActions"><span id="formStatus" class="statusPill">'+statusLabel+'</span>'+(isAdmin?'':'<button class="ghostBtn" onclick="openAdmin()">管理登入</button>')+'</div></header>'}
+function renderFront(){var route=formRouteId(),publicForms=forms.filter(function(x){return x.deleted!==true});if(!route){activeFormId='';document.body.removeAttribute('data-front-theme');formStatus.textContent='請使用完整問卷網址';frontMain.innerHTML=frontPreviewBannerHtml()+frontTopHtml(null,true)+'<div class="successCard"><h2>請使用完整問卷網址</h2><p>請由問卷管理者提供的正式連結進入，網址後方需包含 #form/問卷代碼。</p></div>';return}var f=publicForms.find(function(x){return x.id===route});if(!f){activeFormId='';document.body.removeAttribute('data-front-theme');formStatus.textContent='找不到問卷';frontMain.innerHTML=frontPreviewBannerHtml()+frontTopHtml(null,true)+'<div class="successCard"><h2>找不到這份問卷</h2><p>請確認問卷網址是否完整，或洽問卷管理者重新提供連結。</p></div>';return}activeFormId=f.id;applyFormTheme(f);var closed=f.state!=='open'||deadlinePassed(f.deadline),heroImage=imageUrl(f.imageUrl),description=String(f.description||'').trim();formStatus.textContent=closed?'問卷已關閉':'問卷開放中';frontMain.innerHTML=frontPreviewBannerHtml()+frontTopHtml(f,closed)+'<section class="formHero"><h1>'+esc(f.title)+'</h1>'+(description?'<p>'+esc(description)+'</p>':'')+(f.deadline?'<span class="deadlineBadge">請於 '+esc(formatDeadline(f.deadline))+' 前完成</span>':'')+(heroImage?'<img class="referenceImage" src="'+attr(heroImage)+'" alt="問卷參考圖片">':'')+'</section>'+(closed?'<div class="successCard" style="margin-top:18px"><h2>本問卷目前未開放填寫</h2></div>':'<form id="publicForm" class="questionList frontFormStack" onsubmit="submitResponse(event)"><div class="frontFormHeading"><h2>填寫問卷</h2></div>'+(f.identityMode==='member'?renderIdentityBlock(f):'')+normalizeQuestions(f.questions||[]).map(function(q){return renderPublicQuestion(q)}).join('')+'<div class="submitArea"><button id="submitBtn" class="btn primary" type="submit">確認並送出</button><span id="submitNote" class="questionHelp"></span></div></form>')}
 function formRowHtml(f){var manage=canManageForm(f.id),canDelete=canDeleteFormDirectly(f),id=attr(f.id),role=formRoleLabel(f);var buttons=[manage?actionButton('編輯',"editForm('"+id+"')"):'',actionButton('結果',"openResults('"+id+"')"),manage?actionButton('複製',"duplicateForm('"+id+"')"):'',canDelete?actionButton('刪除',"deleteForm('"+id+"')",'danger'):''];return '<tr><td><b>'+esc(f.title)+'</b><br><small>'+(f.questions||[]).length+' 題・'+esc(f.id)+'</small></td><td>'+statePillHtml(effectiveState(f))+'</td><td>'+esc(role)+'</td><td>'+creatorCellHtml(f)+'</td><td>'+esc(formatDeadline(f.deadline)||'未設定')+'</td><td>'+countPillHtml(responseCountForForm(f.id))+'</td><td>'+actionGroup(buttons)+'</td></tr>'}
 function creatorCellHtml(f){var label=esc(formCreatorLabel(f));if(!isSystemAdmin)return label;return '<button type="button" class="creatorNameButton" onclick="changeFormCreator(\''+attr(f.id)+'\')" title="變更問卷建立者">'+label+'</button>'}
 function renderFormManagers(){var rows=formManagers.map(function(m){var id=attr(m.id),enabled=m.enabled!==false,role=m.role==='manager'?'問卷管理者':'結果檢視者';var actions=[actionButton(enabled?'停用':'啟用',"toggleFormManager('"+id+"',"+(enabled?'false':'true')+")"),actionButton('移除',"removeFormManager('"+id+"')",'danger')];return '<tr><td><b>'+esc(managerPersonLabel(m.email))+'</b></td><td>'+esc(role)+'</td><td><span class="statePill '+(enabled?'state-open':'state-closed')+'">'+(enabled?'啟用':'停用')+'</span></td><td>'+actionGroup(actions)+'</td></tr>'});$('formManagersTable').innerHTML=table(['分享成員','權限','狀態','操作'],rows,'尚無資料')}
@@ -1184,189 +1184,5 @@ if(resultExportRowV141V144Base){
     row['填寫方式']=submissionMethodLabelV144(r,f);
     return row;
   };
-}
-var submitResponseV144Base=typeof submitResponse==='function'?submitResponse:null;
-if(submitResponseV144Base){
-  submitResponse=async function(event){
-    var f=activeForm();
-    if(f&&f.identityMode!=='member'){
-      var oldConfirm=confirmDialog;
-      confirmDialog=function(message,title,danger){
-        return oldConfirm('確認送出這份問卷嗎？',title,danger);
-      };
-      try{
-        await submitResponseV144Base(event);
-        var card=document.querySelector('.submitSuccessCard p');
-        if(card)card.textContent='已收到您的填寫內容，感謝您的填寫。';
-      }finally{
-        confirmDialog=oldConfirm;
-      }
-    }else{
-      await submitResponseV144Base(event);
-    }
-  };
-}
-function markAssistDirtyV144(){
-  assistedFormDirtyV144=true;
-}
-function markResponseEditDirtyV144(){
-  responseEditDirtyV144=true;
-}
-var openAssistedFillV144Base=typeof openAssistedFill==='function'?openAssistedFill:null;
-if(openAssistedFillV144Base){
-  openAssistedFill=function(memberId){
-    lastModalTriggerV144=document.activeElement;
-    assistedFormDirtyV144=false;
-    openAssistedFillV144Base(memberId);
-    var form=document.getElementById('assistedForm');
-    if(form){
-      form.addEventListener('input',markAssistDirtyV144);
-      form.addEventListener('change',markAssistDirtyV144);
-    }
-  };
-}
-var closeAssistedFillV144Base=typeof closeAssistedFill==='function'?closeAssistedFill:null;
-if(closeAssistedFillV144Base){
-  closeAssistedFill=async function(force){
-    if(modalBusyV144&&!modalProgrammaticCloseV144)return;
-    if(!modalProgrammaticCloseV144&&!force&&assistedFormDirtyV144&&!await confirmDialog('內容尚未儲存，確定關閉嗎？','尚未儲存'))return;
-    assistedFormDirtyV144=false;
-    closeAssistedFillV144Base();
-    if(lastModalTriggerV144&&lastModalTriggerV144.focus)lastModalTriggerV144.focus();
-  };
-}
-var submitAssistedResponseV144Base=typeof submitAssistedResponse==='function'?submitAssistedResponse:null;
-if(submitAssistedResponseV144Base){
-  submitAssistedResponse=async function(event){
-    modalBusyV144=true;
-    modalProgrammaticCloseV144=true;
-    try{await submitAssistedResponseV144Base(event);assistedFormDirtyV144=false}
-    finally{modalProgrammaticCloseV144=false;modalBusyV144=false}
-  };
-}
-var openResponseEditorV144Base=typeof openResponseEditor==='function'?openResponseEditor:null;
-if(openResponseEditorV144Base){
-  openResponseEditor=function(id){
-    lastModalTriggerV144=document.activeElement;
-    responseEditDirtyV144=false;
-    openResponseEditorV144Base(id);
-    var form=document.getElementById('responseEditForm');
-    if(form){
-      form.addEventListener('input',markResponseEditDirtyV144);
-      form.addEventListener('change',markResponseEditDirtyV144);
-    }
-  };
-}
-var closeResponseEditorV144Base=typeof closeResponseEditor==='function'?closeResponseEditor:null;
-if(closeResponseEditorV144Base){
-  closeResponseEditor=async function(force){
-    if(modalBusyV144&&!modalProgrammaticCloseV144)return;
-    if(!modalProgrammaticCloseV144&&!force&&responseEditDirtyV144&&!await confirmDialog('內容尚未儲存，確定關閉嗎？','尚未儲存'))return;
-    responseEditDirtyV144=false;
-    closeResponseEditorV144Base();
-    if(lastModalTriggerV144&&lastModalTriggerV144.focus)lastModalTriggerV144.focus();
-  };
-}
-var saveEditedResponseV144Base=typeof saveEditedResponse==='function'?saveEditedResponse:null;
-if(saveEditedResponseV144Base){
-  saveEditedResponse=async function(event){
-    modalBusyV144=true;
-    modalProgrammaticCloseV144=true;
-    try{await saveEditedResponseV144Base(event);responseEditDirtyV144=false}
-    finally{modalProgrammaticCloseV144=false;modalBusyV144=false}
-  };
-}
-function topOpenModalV144(){
-  var selectors=['.deleteFormModalV136','#creatorDialogMask','#dialogMask','#responseEditMask','#assistedFillMask'];
-  for(var i=0;i<selectors.length;i++){
-    var el=document.querySelector(selectors[i]);
-    if(el&&getComputedStyle(el).display!=='none')return el;
-  }
-  return null;
-}
-document.addEventListener('keydown',async function(event){
-  if(event.key!=='Escape')return;
-  var modal=topOpenModalV144();
-  if(!modal||modalBusyV144)return;
-  event.preventDefault();
-  if(modal.classList.contains('deleteFormModalV136'))return;
-  if(modal.id==='dialogMask')return closeDialog(false);
-  if(modal.id==='creatorDialogMask'&&typeof closeCreatorDialog==='function')return closeCreatorDialog('');
-  if(modal.id==='assistedFillMask')return closeAssistedFill(false);
-  if(modal.id==='responseEditMask')return closeResponseEditor(false);
-});
-
-/* v1.46: complete unsaved-change gates before main script merge. */
-async function confirmDiscardFormChangesV145(){
-  if(!formDirty)return true;
-  return await confirmDialog('問卷內容尚未儲存，確定要離開或清空目前編輯內容？','尚未儲存');
-}
-var startNewFormRawV145=typeof startNewForm==='function'?startNewForm:null;
-var editFormRawV145=typeof editForm==='function'?editForm:null;
-var selectFormRawV145=typeof selectForm==='function'?selectForm:null;
-if(startNewFormRawV145){
-  openNewFormSafely=async function(button){
-    var inEditor=document.querySelector('.panel.active')&&document.querySelector('.panel.active').id==='editorPanel';
-    if(inEditor&&!await confirmDiscardFormChangesV145())return;
-    formDirty=false;
-    startNewFormRawV145();
-    await showPanel('editorPanel',button);
-  };
-}
-if(editFormRawV145){
-  openEditFormSafely=async function(id){
-    var inEditor=document.querySelector('.panel.active')&&document.querySelector('.panel.active').id==='editorPanel';
-    if(inEditor&&formDirty&&!await confirmDiscardFormChangesV145())return;
-    formDirty=false;
-    activeQuestionIdV144='';
-    editFormRawV145(id);
-  };
-  editForm=function(id){
-    return openEditFormSafely(id);
-  };
-}
-if(selectFormRawV145){
-  selectForm=async function(id){
-    var previous=activeFormId;
-    if(!id||!canViewForm(id)){
-      if(activeFormSelect)activeFormSelect.value=previous||'';
-      return;
-    }
-    var inEditor=document.querySelector('.panel.active')&&document.querySelector('.panel.active').id==='editorPanel';
-    if(inEditor&&formDirty&&!await confirmDiscardFormChangesV145()){
-      if(activeFormSelect)activeFormSelect.value=previous||'';
-      return;
-    }
-    formDirty=false;
-    activeFormId=id;
-    history.replaceState(null,'','#admin/'+encodeURIComponent(id));
-    await loadResponses();
-    renderAdmin();
-    if(inEditor){
-      if(canManageForm(id)&&editFormRawV145)editFormRawV145(id);
-      else await showPanel('dashboardPanel');
-    }
-  };
-}
-var formRowHtmlV145Base=typeof formRowHtml==='function'?formRowHtml:null;
-if(formRowHtmlV145Base){
-  formRowHtml=function(f){
-    return formRowHtmlV145Base(f).replace(/editForm\('/g,"openEditFormSafely('");
-  };
-}
-if(typeof window.startUniversalApp==='function')window.startUniversalApp();
-
-
-
-
-
-
-
-/* v1.46: final cancel entry after removing legacy unsafe cancelEdit. */
-async function cancelEdit(){
-  if(!await confirmDiscardFormChangesV145())return;
-  formDirty=false;
-  if(startNewFormRawV145)startNewFormRawV145();
-  await showPanel('formsPanel');
 }
 
