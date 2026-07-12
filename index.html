@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>公司通用問卷調查系統 v1.45</title>
+  <title>公司通用問卷調查系統 v1.46</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="css/app.css?v=1.45">
+  <link rel="stylesheet" href="css/app.css?v=1.46">
 </head>
 <body>
   <div id="toast" class="toast"></div>
@@ -31,7 +31,7 @@
           <summary>問卷作業 <span class="navChevron topNavChevron"></span></summary>
           <div class="navMenu topNavMenu">
             <button class="nav" onclick="showPanel('formsPanel',this)">問卷管理</button>
-            <button class="nav" onclick="showPanel('editorPanel',this);startNewForm()">建立或編輯問卷</button>
+            <button class="nav" onclick="openNewFormSafely(this)">建立或編輯問卷</button>
             <button class="nav" onclick="showPanel('resultsPanel',this)">填寫結果</button>
             <button class="nav" onclick="openMissingList()">未填寫名單</button>
             <button class="nav navExport" onclick="exportResults()">Excel 匯出</button>
@@ -126,10 +126,11 @@
     </div>
   </div>
   <div id="pageLoading" class="pageLoading" hidden><div>處理中…</div></div>
-  <script src="js/config.js?v=1.45"></script>
-  <script src="js/app.js?v=1.45"></script>
+  <script src="js/config.js?v=1.46"></script>
+  <script src="js/app.js?v=1.46"></script>
 </body>
 </html>
+
 
 
 

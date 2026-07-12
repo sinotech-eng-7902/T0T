@@ -63,7 +63,6 @@ function updateIdentityMembers(department){let select=$('identityMember'),list=m
 
 function renderPublicQuestion(q){let required=q.required?'<span class="required"> *</span>':'';let title=`${esc(q.title||'未命名題目')}${required}`;let help=q.help?`<div class="questionHelp">${esc(q.help)}</div>`:'';let img=imageUrl(q.imageUrl),image=img?`<img class="questionImage" src="${attr(img)}" alt="${attr(q.title||'參考圖片')}">`:'';if(q.type==='image')return `<section class="questionCard"><label class="title">${title}</label>${help}${image}</section>`;let name='q_'+q.id,req=q.required?'required':'';let input='';if(q.type==='long')input=`<textarea name="${attr(name)}" ${req}></textarea>`;else if(q.type==='single'||q.type==='multiple'){let t=q.type==='multiple'?'checkbox':'radio',choiceRequired=q.type==='single'?req:'';input=`<div class="choiceList">${(q.options||[]).map(o=>`<label class="choice"><input type="${t}" name="${attr(name)}" value="${attr(o)}" ${choiceRequired}>${esc(o)}</label>`).join('')}</div>`}else if(q.type==='dropdown'||q.type==='department'){let opts=q.type==='department'?departments.map(d=>d.name||d.departmentName||'').filter(Boolean):(q.options||[]);input=`<select name="${attr(name)}" ${req}><option value="">請選擇</option>${opts.map(o=>`<option value="${attr(o)}">${esc(o)}</option>`).join('')}</select>`}else input=`<input type="text" name="${attr(name)}" ${req}>`;return `<section class="questionCard"><label class="title">${title}</label>${help}${image}${input}</section>`}
 
-async function submitResponse(event){event.preventDefault();let f=activeForm();if(!f||f.state!=='open'||deadlinePassed(f.deadline))return notify('問卷已關閉，請重新整理頁面');let identity={},note=$('submitNote');note.textContent='';note.classList.remove('submitError');if(f.identityMode==='member'){let departmentName=$('identityDepartment')?.value||'',memberId=$('identityMember')?.value||'',m=members.find(x=>x.id===memberId);if(!departmentName||!m)return notify('請選擇您的部門與姓名');if(m.active===false)return notify('這位同仁目前為停用狀態，無法填寫');if((m.department||m.departmentName)!==departmentName)return notify('人員資料與部門不相符，請重新選擇');identity={departmentName,memberId,memberName:m.name||'',employeeNo:m.employeeNo||m.empNo||''}}let fd=new FormData(event.target),answers={};for(let q of(f.questions||[])){if(q.type==='image')continue;let name='q_'+q.id;if(q.type==='multiple')answers[q.id]=fd.getAll(name);else answers[q.id]=String(fd.get(name)||'').trim();if(q.required&&(!answers[q.id]||(Array.isArray(answers[q.id])&&!answers[q.id].length)))return notify('請完成必填題目：'+q.title)}let responseKey=f.identityMode==='member'?`${f.id}__${identity.memberId}`:'',lockRef=responseKey?doc('universalResponseLocks',responseKey):null;if(lockRef){note.textContent='正在確認是否已填寫…';try{let lock=await lockRef.get();if(lock.exists){let message='您已填寫過這份問卷，無法重複送出。如需更正，請洽管理員。';note.textContent=message;note.classList.add('submitError');notify(message,'warn');return}}catch(e){console.error(e);note.textContent='目前無法確認填寫狀態，請稍後再試。';note.classList.add('submitError');notify('無法確認是否已填寫，為避免重複資料，本次不會送出。','error');return}}note.textContent='';if(!await confirmDialog('確認送出這份問卷嗎？送出後如需更正，請洽管理員。','確認送出'))return;let btn=$('submitBtn');btn.disabled=true;btn.textContent='送出中…';setPageLoading(true,'正在送出問卷…');let payload={formId:f.id,formTitle:f.title,...identity,answers,submittedAt:firebase.firestore.FieldValue.serverTimestamp(),submittedAtText:new Date().toLocaleString('zh-TW')};try{let batch=db.batch(),responseRef=responseKey?doc('universalResponses',responseKey):col('universalResponses').doc();batch.set(responseRef,payload);if(lockRef)batch.set(lockRef,{formId:f.id,memberId:identity.memberId,createdAt:firebase.firestore.FieldValue.serverTimestamp()});await batch.commit();frontMain.innerHTML='<div class="successCard submitSuccessCard"><h2>填寫成功</h2><p>已收到您的填寫內容。每位同仁限填一次；如需更正請洽管理員。</p><button class="btn primary" onclick="location.reload()">返回問卷</button></div>';toast('填寫成功','success')}catch(e){console.error(e);if(f.identityMode==='member'&&e.code==='permission-denied'){let message='您已填寫過這份問卷，無法重複送出。如需更正，請洽管理員。';note.textContent=message;note.classList.add('submitError');notify(message,'warn')}else{note.textContent='送出失敗，請稍後再試。';note.classList.add('submitError');notify('送出失敗，請檢查網路後再試一次','error')}btn.disabled=false;btn.textContent='確認並送出'}finally{setPageLoading(false)}}
 
 function closeTopNavGroups(){document.querySelectorAll('.topNavGroup[open]').forEach(d=>d.removeAttribute('open'))}
 async function showPanel(id,button){let active=document.querySelector('.panel.active');if(active?.id==='editorPanel'&&id!=='editorPanel'&&formDirty&&!await confirmDialog('問卷內容尚未儲存，確定要離開編輯頁面？','尚未儲存'))return;document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));if(button)button.classList.add('active');else{let nav=[...document.querySelectorAll('.nav')].find(n=>(n.getAttribute('onclick')||'').includes("'"+id+"'"));if(nav)nav.classList.add('active')}$('panelTitle').textContent=({dashboardPanel:'儀表板',formsPanel:'問卷管理',editorPanel:'問卷編輯',membersPanel:'人員管理',trashPanel:'垃圾桶',permissionsPanel:'權限管理',resultsPanel:'填寫結果'})[id]||'通用問卷後台';if(id==='dashboardPanel')renderDashboard();if(id==='resultsPanel')renderResults();if(id==='membersPanel')renderMemberPanel();if(id==='trashPanel')renderTrash();if(id==='permissionsPanel')loadFormManagers();closeTopNavGroups()}
@@ -79,9 +78,6 @@ function actionGroup(buttons){return `<div class="buttonRow tableActions">${butt
 function moreActions(buttons){let html=buttons.filter(Boolean).join('');return html?`<details class="moreMenu"><summary class="btn">更多</summary><div>${html}</div></details>`:''}
 
 function renderTargetDepartments(selected=null){if(selected===null)selected=[...document.querySelectorAll('.targetDepartment:checked')].map(x=>x.value);let enabled=$('identityMode').value==='member',box=$('targetDepartmentBox');box.innerHTML=departments.map(d=>{let n=d.name||d.departmentName||d.department||'';return `<label class="departmentChoice"><input type="checkbox" class="targetDepartment" value="${attr(n)}" ${selected.includes(n)?'checked':''}>${esc(n)}</label>`}).join('')||'<span class="questionHelp">尚無部門資料</span>';document.querySelector('.identitySettings')?.classList.toggle('disabled',!enabled);box.querySelectorAll('input').forEach(x=>x.disabled=!enabled)}
-function startNewForm(){formDirty=false;editMode='new';editingId='';draftQuestions=[];$('editorHeading').textContent='新增問卷';$('editorMode').textContent='新增模式';$('saveFormBtn').textContent='建立問卷';$('formTitle').value='';$('formDescription').value='';$('formDeadline').value='';$('formState').value='draft';$('formImageUrl').value='';previewHeaderImage();$('identityMode').value='member';renderTargetDepartments([]);renderQuestionEditor()}
-function editForm(id){let f=forms.find(x=>x.id===id);if(!f)return;formDirty=false;editMode='edit';editingId=id;draftQuestions=JSON.parse(JSON.stringify(f.questions||[]));$('editorHeading').textContent='編輯問卷：'+f.title;$('editorMode').textContent='編輯模式';$('saveFormBtn').textContent='儲存變更';$('formTitle').value=f.title||'';$('formDescription').value=f.description||'';$('formDeadline').value=(f.deadline||'').slice(0,16);$('formState').value=f.state||'draft';$('formImageUrl').value=f.imageUrl||'';previewHeaderImage();$('identityMode').value=f.identityMode||'none';renderTargetDepartments(f.targetDepartments||[]);renderQuestionEditor();showPanel('editorPanel')}
-function cancelEdit(){formDirty=false;showPanel('formsPanel');startNewForm()}
 function addQuestion(type='short'){draftQuestions.push({id:'q_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),type,title:'',required:false,options:[],imageUrl:'',help:''});renderQuestionEditor()}
 function updateQuestion(i,key,value){if(key==='options')draftQuestions[i][key]=value.split('\n').map(x=>x.trim()).filter(Boolean);else draftQuestions[i][key]=value}
 function moveQuestion(i,delta){let j=i+delta;if(j<0||j>=draftQuestions.length)return;[draftQuestions[i],draftQuestions[j]]=[draftQuestions[j],draftQuestions[i]];renderQuestionEditor()}
@@ -222,7 +218,6 @@ function cleanSummarySheet(f){let total=responses.length,questions=selectionQues
 
 function departmentCrossSheet(f){let questions=selectionQuestions(f),configured=departments.map(d=>d.name||d.departmentName||d.department||'').filter(Boolean),used=[...new Set(responses.map(r=>r.departmentName||'未填部門'))],depNames=[...configured.filter(d=>used.includes(d)),...used.filter(d=>!configured.includes(d))],maxCols=Math.max(4,...questions.map(q=>questionOptionLabels(q).length+2)),rows=[['部門 × 選項交叉統計'],['問卷名稱',f.title],['總填寫份數',responses.length],[]],merges=[{s:{r:0,c:0},e:{r:0,c:maxCols-1}}];if(f.identityMode!=='member'){rows.push(['此問卷未使用公司人員資料，因此沒有部門交叉統計。']);merges.push({s:{r:4,c:0},e:{r:4,c:maxCols-1}})}else if(!questions.length){rows.push(['目前沒有可統計的選項題目。']);merges.push({s:{r:4,c:0},e:{r:4,c:maxCols-1}})}else for(let q of questions){let options=questionOptionLabels(q),titleRow=rows.length;rows.push([q.title]);merges.push({s:{r:titleRow,c:0},e:{r:titleRow,c:Math.max(1,options.length+1)}});rows.push(['部門',...options,'合計']);for(let dep of depNames){let depResponses=responses.filter(r=>(r.departmentName||'未填部門')===dep),counts=options.map(o=>depResponses.filter(r=>responseHasOption(r,q,o)).length);rows.push([dep,...counts,counts.reduce((n,x)=>n+x,0)])}let totals=options.map(o=>responses.filter(r=>responseHasOption(r,q,o)).length);rows.push(['總計',...totals,totals.reduce((n,x)=>n+x,0)]);rows.push([])}let sheet=XLSX.utils.aoa_to_sheet(rows);sheet['!merges']=merges;sheet['!cols']=[{wch:18},...Array.from({length:maxCols-1},()=>({wch:13}))];return sheet}
 
-function exportResults(){let f=activeForm();if(!f)return notify('請先選擇問卷');setPageLoading(true,'正在產生 Excel…');try{let qs=(f.questions||[]).filter(q=>q.type!=='image'),detailRows=responses.map(r=>{let row={'送出時間':r.submittedAtText||''};if(f.identityMode==='member'){row['部門']=r.departmentName||'';row['姓名']=r.memberName||'';row['員工編號']=r.employeeNo||''}qs.forEach(q=>row[q.title]=answerText(q,r));return row}),detailSheet=detailRows.length?XLSX.utils.json_to_sheet(detailRows):XLSX.utils.aoa_to_sheet([['目前尚無填寫明細']]);detailSheet['!cols']=[{wch:21},...(f.identityMode==='member'?[{wch:14},{wch:14},{wch:12}]:[]),...qs.map(()=>({wch:24}))];let wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,cleanSummarySheet(f),'選項統計總表');XLSX.utils.book_append_sheet(wb,departmentCrossSheet(f),'部門交叉統計');if(f.identityMode==='member'){XLSX.utils.book_append_sheet(wb,completionProgressSheet(f),'填寫進度');XLSX.utils.book_append_sheet(wb,missingMembersSheet(f),'未填寫名單')}XLSX.utils.book_append_sheet(wb,detailSheet,'填寫明細');XLSX.writeFile(wb,(f.title||'問卷')+'_統計報表.xlsx');toast('Excel 已匯出','success')}catch(e){console.error(e);notify('Excel 匯出失敗','error')}finally{setPageLoading(false)}}
 
 async function loadCurrentAssignments(user){if(!user?.email)return[];try{let q=await col('universalFormManagers').where('email','==',normalizeEmail(user.email)).get();return q.docs.map(x=>({id:x.id,...x.data()}))}catch(e){console.warn('讀取問卷指派失敗，請發布 v1.13 Firestore 規則',e);return[]}}
 
@@ -256,7 +251,6 @@ function applyRoute(){let wantsAdmin=location.hash==='#admin'||location.hash.sta
 function myResponseButton(f){return f?.identityMode==='member'?'<button class="ghostBtn" type="button" onclick="startMyResponseView()">查看我的填寫結果</button>':''}
 function frontPreviewBannerHtml(){if(!isAdmin)return'';let label=adminDisplayName()||currentUser?.email||'管理員';return `<div class="frontPreviewBanner"><div><b>管理員預覽模式</b><span>${esc(label)}</span></div><div class="frontPreviewActions"><button class="btn primary" type="button" onclick="openAdmin()">返回管理後台</button><button class="btn" type="button" onclick="logout()">登出</button></div></div>`}
 function frontTopHtml(f,closed){return `<header class="frontHeader"><img src="assets/company-logo.png" alt="環興科技股份有限公司"><div class="frontActions"><span id="formStatus" class="statusPill">${closed?'問卷已關閉':'問卷開放中'}</span>${myResponseButton(f)}${isAdmin?'':'<button class="ghostBtn" onclick="openAdmin()">管理登入</button>'}</div></header>`}
-function renderFront(){let publicForms=forms.filter(x=>x.deleted!==true),f=publicForms.find(x=>x.id===(formRouteId()||activeFormId))||publicForms.find(x=>x.state==='open')||publicForms[0];if(!f){formStatus.textContent='尚無問卷';frontMain.innerHTML=`${frontPreviewBannerHtml()}${frontTopHtml(null,true)}<div class="successCard"><h2>目前尚無可填寫問卷</h2><p>請洽管理者建立問卷。</p></div>`;return}activeFormId=f.id;let closed=f.state!=='open'||deadlinePassed(f.deadline);formStatus.textContent=closed?'問卷已關閉':'問卷開放中';let heroImage=imageUrl(f.imageUrl),description=String(f.description||'').trim();frontMain.innerHTML=`${frontPreviewBannerHtml()}${frontTopHtml(f,closed)}<section class="formHero"><h1>${esc(f.title)}</h1>${description?`<p>${esc(description)}</p>`:''}${f.deadline?`<span class="deadlineBadge">請於 ${esc(formatDeadline(f.deadline))} 前完成</span>`:''}${heroImage?`<img class="referenceImage" src="${attr(heroImage)}" alt="問卷參考圖片">`:''}</section><div id="myResponseBox"></div>${closed?'<div class="successCard" style="margin-top:18px"><h2>本問卷目前未開放填寫</h2></div>':`<form id="publicForm" class="questionList frontFormStack" onsubmit="submitResponse(event)"><div class="frontFormHeading"><h2>填寫問卷</h2></div>${f.identityMode==='member'?renderIdentityBlock(f):''}${(f.questions||[]).map(renderPublicQuestion).join('')}<div class="submitArea"><button id="submitBtn" class="btn primary" type="submit">確認並送出</button><span id="submitNote" class="questionHelp"></span></div></form>`}`}
 
 async function startMyResponseView(){loginPurpose='response';loginMsg.textContent='';if(!currentUser){loginMask.style.display='grid';return}await loadMemberAccounts();await showMyResponse()}
 async function showMyResponse(){let box=$('myResponseBox'),f=activeForm();if(!box||!f)return;let member=findMemberByGoogleEmail(currentUser?.email||'');if(!member){box.innerHTML='<div class="notice myResponseCard">找不到此 Google 帳號對應的人員資料，請確認是否使用公司行事曆同一組帳號。</div>';return}box.innerHTML='<div class="notice myResponseCard">正在讀取您的填寫內容…</div>';try{let snap=await doc('universalResponses',`${f.id}__${member.id}`).get();if(!snap.exists){box.innerHTML='<div class="notice myResponseCard">目前查無您的填寫紀錄。</div>';return}let r={id:snap.id,...snap.data()},questions=(f.questions||[]).filter(q=>q.type!=='image'),answers=questions.map(q=>`<div class="myAnswerItem"><b>${esc(q.title||'未命名題目')}</b><p>${esc(answerText(q,r)||'未填')}</p></div>`).join('');box.innerHTML=`<section class="notice myResponseCard"><h2>我的填寫結果</h2><p class="myResponseMeta"><span>${esc(r.departmentName||member.department||'')}</span><span>${esc(r.memberName||member.name||'')}</span><span>${esc(r.employeeNo||member.employeeNo||member.empNo||'')}</span><span>${esc(r.submittedAtText||'')}</span></p><div class="myAnswerList">${answers||'<div class="myAnswerItem"><p>此問卷沒有可顯示的題目。</p></div>'}</div></section>`}catch(e){console.error(e);box.innerHTML='<div class="notice myResponseCard">讀取失敗，請確認 Firestore 規則已部署 v1.27 完整合併版。</div>'}}
@@ -266,7 +260,6 @@ function managerPersonLabel(email){let member=findMemberByGoogleEmail(email),lab
 function adminDisplayName(){let member=findMemberByGoogleEmail(currentUser?.email||'');return memberDisplayName(member)||currentUser?.displayName||currentUser?.email||''}
 function ensureAdminExtensions(){if(!$('permissionsPanel')){$('resultsPanel')?.insertAdjacentHTML('beforebegin',`<section id="permissionsPanel" class="panel"><div class="card"><div class="sectionHead"><div><h2>問卷權限管理</h2><p>針對目前選取的問卷分享管理或檢視權限。問卷管理者可編輯問卷與回覆，檢視者只能查看結果與匯出。</p></div></div><div class="permissionForm flatPermissionForm"><label>分享成員<select id="managerEmail"><option value="">請選擇成員</option></select></label><label>權限<select id="managerRole"><option value="manager">問卷管理者</option><option value="viewer">結果檢視者</option></select></label><button class="btn primary" onclick="saveFormManager()">新增／更新權限</button><p class="questionHelp permissionHelp">Google 帳號係同仁部門行事曆使用之帳號；如帳號異動，請洽系統管理員修正後方可登入。</p></div><div id="formManagersTable"></div></div></section>`)}renderShareMemberOptions()}
 function updateRoleUi(){ensureAdminExtensions();let navs=[...document.querySelectorAll('.sidebar .nav')];navs.forEach(n=>{let t=n.textContent.trim();if(t==='人員管理'||t==='垃圾桶')n.style.display=isSystemAdmin?'':'none'});$('permissionsNav').style.display=activeFormId&&canManageForm(activeFormId)?'':'none';let groups=document.querySelectorAll('.navGroup');if(groups[1])groups[1].style.display=(isSystemAdmin||(activeFormId&&canManageForm(activeFormId)))?'':'none';[...document.querySelectorAll('#formsPanel button')].filter(b=>/外套尺寸範本/.test(b.textContent)).forEach(b=>b.style.display=isSystemAdmin?'':'none');if(!isSystemAdmin&&($('membersPanel')?.classList.contains('active')||$('trashPanel')?.classList.contains('active')))showPanel('dashboardPanel');if(activeFormId&&!canManageForm(activeFormId)&&($('editorPanel')?.classList.contains('active')||$('permissionsPanel')?.classList.contains('active')))showPanel('resultsPanel')}
-function renderDashboard(){let f=activeForm(),progress=f?.identityMode==='member'?completionData(f):null,rate=progress&&progress.expected.length?Math.round(progress.filled.length*1000/progress.expected.length)/10:null;if($('dashResponseCount'))$('dashResponseCount').textContent=f?responses.length:0;if($('dashExpectedCount'))$('dashExpectedCount').textContent=progress?progress.expected.length:'—';if($('dashCompletionRate'))$('dashCompletionRate').textContent=rate!==null?`${rate}%`:'—';let rateMetric=$('dashCompletionRate')?.closest('.metric');if(rateMetric){let bar=rateMetric.querySelector('.metricProgress');if(rate!==null){if(!bar){bar=document.createElement('span');bar.className='metricProgress';bar.innerHTML='<i></i>';rateMetric.appendChild(bar)}bar.querySelector('i').style.width=`${Math.max(0,Math.min(100,rate))}%`}else if(bar)bar.remove()}if($('dashMissingCount'))$('dashMissingCount').textContent=progress?progress.missing.length:'—';if($('dashCurrentNote'))$('dashCurrentNote').textContent='';if($('dashboardCurrent'))$('dashboardCurrent').innerHTML=f?`<div class="currentSurveyCard compactCurrent"><h3>${esc(f.title)}</h3><p>狀態：${esc(stateLabel(effectiveState(f)))}</p><p>截止時間：${esc(formatDeadline(f.deadline)||'未設定')}</p><p>填寫進度：${progress?`${progress.filled.length}/${progress.expected.length}`:'未設定'}</p><p>建立者：${esc(formCreatorLabel(f))}</p></div>`:emptyState('尚未選擇問卷','請先從右上角選擇問卷，或建立新的問卷。',`<button class="btn primary" onclick="openNewFormSafely()">建立問卷</button>`)}
 function renderAdmin(){ensureAdminExtensions();let list=accessibleForms();if(list.length&&!list.some(f=>f.id===activeFormId))activeFormId=list[0].id;activeFormSelect.innerHTML='<option value="">請選擇問卷</option>'+list.map(f=>`<option value="${attr(f.id)}" ${f.id===activeFormId?'selected':''}>${esc(f.title)}</option>`).join('');let f=activeForm();activeFormLabel.textContent=f?f.title:'尚未選擇問卷';if($('formCount'))$('formCount').textContent=list.length;if($('currentFormName'))$('currentFormName').textContent=f?.title||'—';if($('responseCount'))$('responseCount').textContent=responses.length;renderDashboard();renderFormsTable();if(isSystemAdmin){renderMemberPanel();renderTrash();if($('permissionsPanel')?.classList.contains('active'))loadFormManagers()}renderResults();updateRoleUi()}
 function formRowHtml(f){let manage=canManageForm(f.id),canDelete=canDeleteFormDirectly(f),id=attr(f.id),role=formRoleLabel(f);let buttons=[manage?actionButton('編輯',`editForm('${id}')`):'',actionButton('結果',`openResults('${id}')`),manage?actionButton('複製',`duplicateForm('${id}')`):'',canDelete?actionButton('刪除',`deleteForm('${id}')`,'danger'):''];return `<tr><td><b>${esc(f.title)}</b><br><small>${(f.questions||[]).length} 題・${esc(f.id)}</small></td><td>${statePillHtml(effectiveState(f))}</td><td>${esc(role)}</td><td>${creatorCellHtml(f)}</td><td>${esc(formatDeadline(f.deadline)||'未設定')}</td><td>${countPillHtml(responseCountForForm(f.id))}</td><td>${actionGroup(buttons)}</td></tr>`}
 function setFormSection(key){activeFormSection=key;renderFormsTable()}
@@ -282,7 +275,6 @@ async function copyAdminLink(id=activeFormId){if(!id)return notify('請先選擇
 
 
 function confirmDeleteFormModalV136(f){return new Promise(resolve=>{document.querySelectorAll('.deleteFormModalV136').forEach(el=>el.remove());let overlay=document.createElement('div');overlay.className='deleteFormModalV136';overlay.innerHTML=`<div class="deleteFormDialogV136" role="dialog" aria-modal="true" aria-label="永久刪除問卷"><button type="button" class="deleteFormCloseV136" aria-label="關閉">×</button><h3>永久刪除問卷</h3><p class="muted">這會刪除「${esc(f.title||f.id||'未命名問卷')}」及本問卷的填寫資料。此操作無法復原。</p><div class="deleteFormScopeV136"><b>會一起刪除</b><ul><li>問卷基本資料、題目設定與參考圖片設定</li><li>填寫結果、填寫鎖定與協助填寫紀錄</li><li>本問卷的分享成員與權限設定</li></ul><b>會保留</b><ul><li>人員主檔、部門資料</li><li>其他問卷與其他問卷的填寫資料</li></ul></div><label class="deleteFormConfirmFieldV136">請輸入 DELETE 確認刪除<input class="deleteFormConfirmInputV136" autocomplete="off" placeholder="DELETE"></label><div class="deleteFormActionsV136"><button type="button" class="btn deleteFormCancelV136">取消</button><button type="button" class="btn danger deleteFormConfirmBtnV136" disabled>永久刪除</button></div></div>`;document.body.appendChild(overlay);let input=overlay.querySelector('.deleteFormConfirmInputV136'),confirmBtn=overlay.querySelector('.deleteFormConfirmBtnV136');let close=ok=>{overlay.remove();resolve(!!ok)};overlay.querySelector('.deleteFormCloseV136').onclick=()=>close(false);overlay.querySelector('.deleteFormCancelV136').onclick=()=>close(false);input.addEventListener('input',()=>{confirmBtn.disabled=input.value.trim()!=='DELETE'});confirmBtn.onclick=()=>{if(input.value.trim()==='DELETE')close(true)};setTimeout(()=>input.focus(),50)})}
-async function deleteForm(id){let f=forms.find(x=>x.id===id);if(!f)return;if(!canDeleteFormDirectly(f))return notify('只有系統管理員或問卷建立者可以刪除此問卷','error');let confirmed=await confirmDeleteFormModalV136(f);if(!confirmed)return;setPageLoading(true,'正在永久刪除問卷與關聯資料…');try{let[responseSnap,lockSnap,managerSnap]=await Promise.all([col('universalResponses').where('formId','==',id).get(),col('universalResponseLocks').where('formId','==',id).get(),col('universalFormManagers').where('formId','==',id).get()]);await deleteSnapshotInChunks(responseSnap);await deleteSnapshotInChunks(lockSnap);await deleteSnapshotInChunks(managerSnap);await doc('universalForms',id).delete();if(activeFormId===id)activeFormId='';await loadAdminData();showPanel('formsPanel');toast('問卷及其關聯資料已刪除','success')}catch(e){console.error(e);notify('刪除失敗，請確認 Firestore 規則已部署','error')}finally{setPageLoading(false)}}
 function renderTrash(){let deleted=forms.filter(f=>f.deleted===true);$('trashTable').innerHTML=table(['問卷名稱','刪除時間','刪除者','原建立者','回覆數','操作'],deleted.map(f=>{let id=attr(f.id);return `<tr><td><b>${esc(f.title)}</b><br><small>${esc(f.id)}</small></td><td>${esc(f.deletedAt?.toDate?f.deletedAt.toDate().toLocaleString('zh-TW'):'未紀錄')}</td><td>${esc(f.deletedBy||'未紀錄')}</td><td>${esc(formCreatorLabel(f))}</td><td>${countPillHtml(responseCountForForm(f.id))}</td><td>${actionGroup([actionButton('復原',`restoreForm('${id}')`),actionButton('永久刪除',`permanentlyDeleteForm('${id}')`,'danger')])}</td></tr>`}),emptyState('垃圾桶是空的','目前沒有移至垃圾桶的問卷。'))}
 async function restoreForm(id){if(!isSystemAdmin)return;await doc('universalForms',id).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete(),deletedBy:firebase.firestore.FieldValue.delete()});await loadAdminData();toast('問卷已復原')}
 async function deleteSnapshotInChunks(snapshot){let docs=snapshot.docs;for(let i=0;i<docs.length;i+=400){let batch=db.batch();docs.slice(i,i+400).forEach(x=>batch.delete(x.ref));await batch.commit()}}
@@ -296,7 +288,6 @@ async function saveFormManager(){if(!activeFormId||!canManageForm(activeFormId))
 async function toggleFormManager(id,enabled){if(!activeFormId||!canManageForm(activeFormId))return;await doc('universalFormManagers',id).set({enabled,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});await loadFormManagers();toast(enabled?'權限已啟用':'權限已停用','success')}
 async function removeFormManager(id){if(!activeFormId||!canManageForm(activeFormId))return;let m=formManagers.find(x=>x.id===id),label=(m?.displayName||managerPersonLabel(m?.email)||'此成員').replace(/<[^>]*>/g,'');if(!await confirmDialog(`確定移除 ${label} 的問卷權限？`,'移除權限',true))return;setPageLoading(true,'正在移除權限…');try{await doc('universalFormManagers',id).delete();await loadFormManagers();toast('問卷權限已移除','success')}catch(e){console.error(e);notify('移除權限失敗，請確認權限或網路狀態','error')}finally{setPageLoading(false)}}
 
-function renderResults(){let f=activeForm(),progress=f?.identityMode==='member'?completionData(f):null;$('resultCaption').textContent=f?`${f.title}：共 ${responses.length} 份回覆${progress?`；應填 ${progress.expected.length} 人，未填 ${progress.missing.length} 人`:''}`:'請先選擇問卷。';if(!f){$('resultAnalysis').innerHTML='';resultsTable.innerHTML='';let p=$('missingResponsesPanel');if(p)p.style.display='none';return}$('resultAnalysis').innerHTML=renderAnalysis(f);renderMissingMembers(f);let qs=(f.questions||[]).filter(q=>q.type!=='image'),identityHeaders=f.identityMode==='member'?['部門','姓名','員工編號']:[],manage=canManageForm(f.id);resultsTable.innerHTML=table(['送出時間',...identityHeaders,...qs.map(q=>q.title),'操作'],responses.map(r=>{let id=attr(r.id),actions=manage?actionGroup([actionButton('編輯',`openResponseEditor('${id}')`),actionButton('刪除',`deleteResponse('${id}')`,'danger')]):roleBadgeHtml('唯讀',false);return `<tr><td>${esc(r.submittedAtText||'')}</td>${f.identityMode==='member'?`<td>${esc(r.departmentName||'')}</td><td>${esc(r.memberName||'')}</td><td>${esc(r.employeeNo||'')}</td>`:''}${qs.map(q=>`<td>${esc(answerText(q,r))}</td>`).join('')}<td>${actions}</td></tr>`}))}
 
 window.startUniversalApp=function(){return init().catch(e=>{console.error(e);frontMain.innerHTML='<div class="successCard"><h2>系統載入失敗</h2><p>'+esc(e.message||e)+'</p></div>'})};
 
@@ -321,7 +312,7 @@ window.startUniversalApp=function(){return init().catch(e=>{console.error(e);fro
 
 
 
-/* === v1.32-v1.45 merged enhancements === */
+/* === v1.32-v1.46 merged enhancements === */
 /* v1.32 主題、代填與題型擴充 */
 var assistedTargetMemberId='';
 var FORM_THEMES_V132=[
@@ -880,7 +871,7 @@ function renderDashboard(){
   if(rateMetric){var bar=rateMetric.querySelector('.metricProgress');if(memberMode&&rate!==null){if(!bar){bar=document.createElement('span');bar.className='metricProgress';bar.innerHTML='<i></i>';rateMetric.appendChild(bar)}bar.querySelector('i').style.width=Math.max(0,Math.min(100,rate))+'%'}else if(bar)bar.remove()}
   if($('dashMissingCount'))$('dashMissingCount').textContent=f?(memberMode?progress.missing.length:latestResponseTextV141()):'—';
   if($('dashCurrentNote'))$('dashCurrentNote').textContent='';
-  if($('dashboardCurrent'))$('dashboardCurrent').innerHTML=f?'<div class="currentSurveyCard compactCurrent"><h3>'+esc(f.title)+'</h3><p>狀態：'+esc(stateLabel(effectiveState(f)))+'</p><p>截止時間：'+esc(formatDeadline(f.deadline)||'未設定')+'</p><p>'+(memberMode?'填寫進度：'+progress.filled.length+'/'+progress.expected.length:'填寫份數：'+responses.length)+'</p><p>建立者：'+esc(formCreatorLabel(f))+'</p></div>':emptyState('尚未選擇問卷','請先從右上角選擇問卷，或建立新的問卷。','<button class="btn primary" onclick="showPanel(\'editorPanel\');startNewForm()">建立問卷</button>');
+  if($('dashboardCurrent'))$('dashboardCurrent').innerHTML=f?'<div class="currentSurveyCard compactCurrent"><h3>'+esc(f.title)+'</h3><p>狀態：'+esc(stateLabel(effectiveState(f)))+'</p><p>截止時間：'+esc(formatDeadline(f.deadline)||'未設定')+'</p><p>'+(memberMode?'填寫進度：'+progress.filled.length+'/'+progress.expected.length:'填寫份數：'+responses.length)+'</p><p>建立者：'+esc(formCreatorLabel(f))+'</p></div>':emptyState('尚未選擇問卷','請先從右上角選擇問卷，或建立新的問卷。','<button class="btn primary" onclick="openNewFormSafely()">建立問卷</button>');
 }
 async function saveForm(){
   var title=$('formTitle').value.trim();if(!title)return notify('請輸入問卷標題');
@@ -948,7 +939,7 @@ function installModalPolishV143(){
 installQuestionEditorV143();
 installModalPolishV143();
 
-/* v1.45: merged enhancements plus full unsaved-change guards. */
+/* v1.46: merged enhancements plus full unsaved-change guards. */
 var activeQuestionIdV144=null;
 var dragQuestionIdV144=null;
 var assistedFormDirtyV144=false;
@@ -1174,13 +1165,6 @@ if(startNewFormV144Base){
     startNewFormV144Base();
   };
 }
-var editFormV144Base=typeof editForm==='function'?editForm:null;
-if(editFormV144Base){
-  editForm=function(id){
-    activeQuestionIdV144='';
-    editFormV144Base(id);
-  };
-}
 function submissionMethodLabelV144(r,form){
   if(r&&r.submissionMethod==='assisted')return '管理員協助填寫';
   return form&&formUsesMemberDatabaseV141(form)?'本人填寫':'一般填寫';
@@ -1312,7 +1296,7 @@ document.addEventListener('keydown',async function(event){
   if(modal.id==='responseEditMask')return closeResponseEditor(false);
 });
 
-/* v1.45: complete unsaved-change gates before main script merge. */
+/* v1.46: complete unsaved-change gates before main script merge. */
 async function confirmDiscardFormChangesV145(){
   if(!formDirty)return true;
   return await confirmDialog('問卷內容尚未儲存，確定要離開或清空目前編輯內容？','尚未儲存');
@@ -1321,12 +1305,12 @@ var startNewFormRawV145=typeof startNewForm==='function'?startNewForm:null;
 var editFormRawV145=typeof editForm==='function'?editForm:null;
 var selectFormRawV145=typeof selectForm==='function'?selectForm:null;
 if(startNewFormRawV145){
-  openNewFormSafely=async function(){
+  openNewFormSafely=async function(button){
     var inEditor=document.querySelector('.panel.active')&&document.querySelector('.panel.active').id==='editorPanel';
     if(inEditor&&!await confirmDiscardFormChangesV145())return;
     formDirty=false;
     startNewFormRawV145();
-    await showPanel('editorPanel');
+    await showPanel('editorPanel',button);
   };
 }
 if(editFormRawV145){
@@ -1334,18 +1318,11 @@ if(editFormRawV145){
     var inEditor=document.querySelector('.panel.active')&&document.querySelector('.panel.active').id==='editorPanel';
     if(inEditor&&formDirty&&!await confirmDiscardFormChangesV145())return;
     formDirty=false;
+    activeQuestionIdV144='';
     editFormRawV145(id);
   };
   editForm=function(id){
     return openEditFormSafely(id);
-  };
-}
-if(typeof cancelEdit==='function'){
-  cancelEdit=async function(){
-    if(!await confirmDiscardFormChangesV145())return;
-    formDirty=false;
-    if(startNewFormRawV145)startNewFormRawV145();
-    await showPanel('formsPanel');
   };
 }
 if(selectFormRawV145){
@@ -1377,15 +1354,6 @@ if(formRowHtmlV145Base){
     return formRowHtmlV145Base(f).replace(/editForm\('/g,"openEditFormSafely('");
   };
 }
-var renderDashboardV145Base=typeof renderDashboard==='function'?renderDashboard:null;
-if(renderDashboardV145Base){
-  renderDashboard=function(){
-    renderDashboardV145Base();
-    var current=document.getElementById('dashboardCurrent');
-    if(current)current.innerHTML=current.innerHTML.replace(/showPanel\('editorPanel'\);startNewForm\(\)/g,'openNewFormSafely()');
-  };
-}
-
 if(typeof window.startUniversalApp==='function')window.startUniversalApp();
 
 
@@ -1393,4 +1361,12 @@ if(typeof window.startUniversalApp==='function')window.startUniversalApp();
 
 
 
+
+/* v1.46: final cancel entry after removing legacy unsafe cancelEdit. */
+async function cancelEdit(){
+  if(!await confirmDiscardFormChangesV145())return;
+  formDirty=false;
+  if(startNewFormRawV145)startNewFormRawV145();
+  await showPanel('formsPanel');
+}
 
